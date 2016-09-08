@@ -15,9 +15,10 @@ if mpc status | grep -q playing
 then
    echo playing
    exit 2
-else
-   echo mpc clean
-   echo mpc add $*
-   echo mpc play
-   exit 0
+elif [ "$#" -gt 0 ]
+then
+   mpc clear
+   mpc add $*
+   mpc play
 fi
+exit 0
