@@ -39,6 +39,13 @@ install, disable mdp systemctl as a system process with root priv
 	apt-get install mpd mpc
 	service mpd stop
 	update-rc.d mpd disable
+	edit /etc/default/mpd and set MPDCONF=/home/bells/.mpd/mpd.conf
+	update-rc.d mpd enable
+	service mpd start
+
+	# the mpd service attempts to bind to the external ip address, but the network is not running yet: fail.
+	set: bind_to_address         "0.0.0.0"
+        	removing/commenting the other.
 
 add user 'bells'
 	# create home directory, user name: 'bells'
