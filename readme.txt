@@ -53,6 +53,13 @@ add user 'bells'
 	# add user 'bells' to 'audio' group
 	usermod -a -G audio bells
 
+eth0 networking:
+	enable networking: open file /etc/network/interfaces
+	add:
+		auto eth0
+		allow-hotplug eth0
+		iface eth0 inet dhcp
+
 hdmi: enable audio
 	http://www.raspberry-pi-geek.com/Archive/2013/02/HDMI-and-the-BeagleBone-Black-Multimedia-Environment/(offset)/2
 	modify eEnv.txt
