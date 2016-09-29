@@ -34,6 +34,9 @@ from gino:
 	
 resource: http://crunchbang.org/forums/viewtopic.php?pid=182574
 
+fsck:
+   set linux fsckfix by default to yes.  edit /lib/init/vars.sh
+
 system configuration
 install, disable mdp systemctl as a system process with root priv
 	apt-get install mpd mpc
