@@ -1,21 +1,23 @@
-package org.jjfflyboy.bells.scheduler.core;
+package org.jjfflyboy.mpc4j;
 
 /**
  * @Author jfraney
  */
-public class Update implements Command<Update.Response> {
+public class Ping implements Command<Ping.Response> {
     @Override
     public String text() {
-        return "update";
+        return "ping";
     }
 
     @Override
-    public Response response(String[] responseLines) {
+    public Ping.Response response(String[] responseLines) {
         return new Response(responseLines);
     }
+
     public static class Response extends AbstractCommandResponse {
         Response(String[] responseLines) {
             super(responseLines);
         }
     }
+
 }

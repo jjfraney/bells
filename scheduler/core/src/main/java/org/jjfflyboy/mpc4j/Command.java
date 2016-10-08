@@ -1,7 +1,5 @@
-package org.jjfflyboy.bells.scheduler.core;
+package org.jjfflyboy.mpc4j;
 
-
-import java.util.Optional;
 
 /**
  * A command and response of the MPD protocol.

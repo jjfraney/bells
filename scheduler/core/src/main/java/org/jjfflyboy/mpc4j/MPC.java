@@ -1,4 +1,6 @@
-package org.jjfflyboy.bells.scheduler.core;
+package org.jjfflyboy.mpc4j;
+
+import com.google.common.base.Utf8;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -6,11 +8,15 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * @author jfraney
@@ -37,7 +43,7 @@ public class MPC {
 
             channel.connect(address);
 
-            BufferedReader fromMpd = new BufferedReader(new InputStreamReader(Channels.newInputStream(channel)));
+            BufferedReader fromMpd = new BufferedReader(Channels.newReader(channel, "UTF-8"));
 
             String connectResponse;
             // first, expect the connect status
@@ -46,12 +52,13 @@ public class MPC {
                     break;
                 }
             }
-            PrintWriter toMpd = new PrintWriter(Channels.newOutputStream(channel), true);
 
             // then read response into a List
             String [] event;
             do {
-                toMpd.println("idle");
+                ByteBuffer outGoing = ByteBuffer.wrap("idle\n".getBytes(UTF_8));
+                channel.write(outGoing);
+
                 List<String> lines = new ArrayList<>();
                 String responseSegment;
                 while ((responseSegment = fromMpd.readLine()) != null) {
@@ -73,7 +80,7 @@ public class MPC {
 
             channel.connect(address);
 
-            BufferedReader fromMpd = new BufferedReader(new InputStreamReader(Channels.newInputStream(channel)));
+            BufferedReader fromMpd = new BufferedReader(Channels.newReader(channel, UTF_8.newDecoder(), -1));
 
             String connectResponse;
             // first, expect the connect status
@@ -84,8 +91,8 @@ public class MPC {
             }
 
             // now send the command as text
-            PrintWriter toMpd = new PrintWriter(Channels.newOutputStream(channel), true);
-            toMpd.println(textCommand);
+            ByteBuffer outGoing = ByteBuffer.wrap((textCommand + "\n").getBytes(UTF_8));
+            channel.write(outGoing);
 
             // then read response into a List
             List<String> lines = new ArrayList<>();

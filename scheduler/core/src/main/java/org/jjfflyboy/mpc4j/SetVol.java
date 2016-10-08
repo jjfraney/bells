@@ -1,6 +1,4 @@
-package org.jjfflyboy.bells.scheduler.core;
-
-import java.util.function.Consumer;
+package org.jjfflyboy.mpc4j;
 
 /**
  * @author jfraney
