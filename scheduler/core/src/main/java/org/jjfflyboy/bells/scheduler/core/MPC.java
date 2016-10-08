@@ -10,6 +10,7 @@ import java.nio.channels.Channels;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * @author jfraney
@@ -30,7 +31,41 @@ public class MPC {
         return (R) command.response(result);
     }
 
-    public String[] send(String textCommand) throws IOException {
+    public void idle(Function<String [], Boolean> callback) throws IOException {
+        SocketAddress address = new InetSocketAddress(host, port);
+        try (SocketChannel channel = SocketChannel.open()) {
+
+            channel.connect(address);
+
+            BufferedReader fromMpd = new BufferedReader(new InputStreamReader(Channels.newInputStream(channel)));
+
+            String connectResponse;
+            // first, expect the connect status
+            while ((connectResponse = fromMpd.readLine()) != null) {
+                if (responseComplete(connectResponse)) {
+                    break;
+                }
+            }
+            PrintWriter toMpd = new PrintWriter(Channels.newOutputStream(channel), true);
+
+            // then read response into a List
+            String [] event;
+            do {
+                toMpd.println("idle");
+                List<String> lines = new ArrayList<>();
+                String responseSegment;
+                while ((responseSegment = fromMpd.readLine()) != null) {
+                    lines.add(responseSegment);
+                    if (responseComplete(responseSegment)) {
+                        break;
+                    }
+                }
+                event = lines.toArray(new String[lines.size()]);
+            } while (callback.apply(event)) ;
+        }
+    }
+
+    public String [] send(String textCommand) throws IOException {
         String [] result = new String[] {};
         // try-with-resource: opens socket, a a writer toMpd, and a reader fromMpd
         SocketAddress address = new InetSocketAddress(host, port);
@@ -38,7 +73,6 @@ public class MPC {
 
             channel.connect(address);
 
-            PrintWriter toMpd = new PrintWriter(Channels.newOutputStream(channel), true);
             BufferedReader fromMpd = new BufferedReader(new InputStreamReader(Channels.newInputStream(channel)));
 
             String connectResponse;
@@ -50,6 +84,7 @@ public class MPC {
             }
 
             // now send the command as text
+            PrintWriter toMpd = new PrintWriter(Channels.newOutputStream(channel), true);
             toMpd.println(textCommand);
 
             // then read response into a List

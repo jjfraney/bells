@@ -24,6 +24,8 @@ public class MpdSample {
         System.out.println("mix ramp db: " + r.getMixRampDb().orElse(null));
         System.out.println("error=" + r.getError().orElse("no error"));
 
+        mpc.idle(e -> { Stream.of(e).forEach(System.out::println); return true; });
+
         //run(new Update());
     }
     private static Command.Response run(Command command) throws IOException {
