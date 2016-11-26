@@ -42,7 +42,7 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>org.jjfflyboy.bells.scheduler.core.SchedulerImpl</mainClass>
+                                    <mainClass>org.jjfflyboy.bells.scheduler.core.SchedulerByExecutorImpl</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>
