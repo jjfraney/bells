@@ -26,10 +26,55 @@
             <artifactId>google-api-services-calendar</artifactId>
             <version>v3-rev213-1.22.0</version>
         </dependency>
-        <dependency>
-            <groupId>net.thejavashop</groupId>
-            <artifactId>javampd</artifactId>
-            <version>5.0.3</version>
-        </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>2.4.3</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>org.jjfflyboy.bells.scheduler.core.SchedulerImpl</mainClass>
+                                </transformer>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.18.1</version>
+                <configuration>
+                    <dockerHost>tcp://192.168.1.133:2375</dockerHost>
+                    <images>
+                        <image>
+                            <alias>core</alias>
+                            <name>${project.artifactId}:${project.version}</name>
+                            <build>
+                                <!-- dockerFileDir>core</dockerFileDir -->
+                                <from>armv7/armhf-debian</from>
+                                <entryPoint>/jdk/bin/java -jar /${project.build.finalName}.jar</entryPoint>
+                                <assembly>
+                                    <targetDir>/</targetDir>
+                                    <descriptorRef>artifact</descriptorRef>
+                                </assembly>
+                            </build>
+                        </image>
+                    </images>
+
+                </configuration>
+
+            </plugin>
+        </plugins>
+    </build>
+
 </project>
