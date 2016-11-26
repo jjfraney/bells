@@ -15,7 +15,7 @@ import java.util.concurrent.Callable;
  */
 public class RootSchedulable implements Scheduler.Schedulable {
     private static final Logger LOGGER = LoggerFactory.getLogger(RootSchedulable.class);
-    private LocalDateTime firetime = LocalDateTime.now().plus(Duration.ofSeconds(10));
+    private LocalDateTime firetime = LocalDateTime.now().plus(Duration.ofMinutes(10));
     private final Scheduler scheduler;
 
     public RootSchedulable(Scheduler scheduler) {

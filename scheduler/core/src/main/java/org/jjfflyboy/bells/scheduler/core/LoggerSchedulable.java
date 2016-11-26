@@ -12,7 +12,7 @@ import java.util.concurrent.Callable;
  */
 public class LoggerSchedulable implements Scheduler.Schedulable {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggerSchedulable.class);
-    private final LocalDateTime firetime = LocalDateTime.now().plus(Duration.ofSeconds(5));
+    private final LocalDateTime firetime = LocalDateTime.now().plus(Duration.ofMinutes(5));
 
     @Override
     public LocalDateTime getFireTime() {
