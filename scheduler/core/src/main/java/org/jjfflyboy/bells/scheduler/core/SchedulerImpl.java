@@ -4,11 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 
@@ -61,48 +58,7 @@ public class SchedulerImpl implements Scheduler {
             timerTask.cancel();
         }
     }
-    public static class LoggerSchedulable implements Schedulable {
-        private final LocalDateTime firetime = LocalDateTime.now().plus(Duration.ofSeconds(5));
-        @Override
-        public LocalDateTime getFireTime() {
-            return firetime;
-        }
 
-        @Override
-        public  Callable<LocalDateTime> getCallable() {
-            return () -> {
-                LOGGER.info("running the callable.  firetime={}, now={}",
-                        getFireTime(), LocalDateTime.now());
-                return getFireTime();
-            };
-        }
-
-    }
-
-    public static class RootSchedulable implements Schedulable {
-        private LocalDateTime firetime = LocalDateTime.now().plus(Duration.ofSeconds(10));
-        private final Scheduler scheduler;
-        public RootSchedulable(Scheduler scheduler) {
-            this.scheduler = scheduler;
-        }
-        @Override
-        public LocalDateTime getFireTime() {
-            return firetime;
-        }
-
-        @Override
-        public  Callable<LocalDateTime> getCallable() {
-            return () -> {
-                LOGGER.info("rescheduling.  firetime={}, now={}",
-                        getFireTime(), LocalDateTime.now());
-                Schedulable newRoot = new RootSchedulable(scheduler);
-                List<Schedulable> schedulables = new ArrayList<>(Arrays.asList(newRoot, new LoggerSchedulable()));
-                scheduler.schedule(schedulables);
-
-                return newRoot.getFireTime();
-            };
-        }
-    }
     public static void main(String[] args) {
         SchedulerImpl impl = new SchedulerImpl();
 
