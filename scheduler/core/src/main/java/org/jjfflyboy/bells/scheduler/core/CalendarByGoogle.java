@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -39,8 +40,7 @@ public class CalendarByGoogle implements Calendar {
             "Bell Tower";
 
     /** Directory to store user credentials for this application. */
-    private static final java.io.File DATA_STORE_DIR = new java.io.File(
-            System.getProperty("user.home"), ".credentials/bell-tower");
+    private static final java.io.File DATA_STORE_DIR = new java.io.File("bell-tower");
 
     /** Global instance of the {@link FileDataStoreFactory}. */
     private static FileDataStoreFactory DATA_STORE_FACTORY;
@@ -140,10 +140,12 @@ public class CalendarByGoogle implements Calendar {
                     getCalendarService();
 
             // List the next 10 events from the primary calendar.
-            DateTime now = new DateTime(System.currentTimeMillis());
+            DateTime now = new DateTime(ZonedDateTime.now().toEpochSecond() * 1000);
+            DateTime later = new DateTime(ZonedDateTime.now().plusDays(1).toEpochSecond() * 1000);
             Events events = service.events().list("stveronica.com_j1aosivo8imq8bhlipmjqk8ph4@group.calendar.google.com")
                     .setMaxResults(10)
                     .setTimeMin(now)
+                    .setTimeMax(later)
                     .setOrderBy("startTime")
                     .setSingleEvents(true)
                     .execute();
