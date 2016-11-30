@@ -34,6 +34,9 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                     <archive>
+                        <manifestEntries>
+                            <Class-Path>/bell-tower/</Class-Path>
+                        </manifestEntries>
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <mainClass>org.jjfflyboy.bells.scheduler.core.SchedulerByExecutorImpl</mainClass>
