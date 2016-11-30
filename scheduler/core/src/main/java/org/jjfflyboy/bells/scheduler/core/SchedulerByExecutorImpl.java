@@ -52,23 +52,19 @@ public class SchedulerByExecutorImpl implements Scheduler {
 
             Duration d = Duration.between(LocalDateTime.now(), schedulable.getFireTime());
             long milli = d.getSeconds() * 1000 + d.getNano()/1000000;
-            LOGGER.debug("scheduling.  duration={}, duration={}ms, schedulable={}", d, milli, this);
+            LOGGER.debug("scheduling.  duration={}, duration={}ms, schedulable={}", d, milli, schedulable);
             this.future = scheduler.schedule(callable, milli, TimeUnit.MILLISECONDS);
         }
         public void cancel() {
-            LOGGER.debug("cancelling a scheduled call, this={}", this);
+            LOGGER.debug("cancelling a scheduled call, this={}", schedulable);
             this.future.cancel(true);
         }
-        public String toString() {
-            return schedulable.getFireTime().toString();
-        }
-
     }
 
     public static void main(String[] args) {
         SchedulerByExecutorImpl impl = new SchedulerByExecutorImpl();
 
-        Schedulable s = new RootSchedulable(impl);
+        Schedulable s = new GoogleCalendarSchedulable(impl);
         List<Schedulable> schedulables = new ArrayList<>(Arrays.asList(s));
         impl.schedule(schedulables);
     }
