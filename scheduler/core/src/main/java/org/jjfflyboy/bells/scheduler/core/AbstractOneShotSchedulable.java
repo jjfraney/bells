@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
  * @author jfraney
  */
 public abstract class AbstractOneShotSchedulable implements Scheduler.OneShotSchedulable {
-    private LocalDateTime firetime;
+    private final LocalDateTime firetime;
 
     public AbstractOneShotSchedulable(LocalDateTime firetime) {
         this.firetime = firetime;
@@ -16,12 +16,24 @@ public abstract class AbstractOneShotSchedulable implements Scheduler.OneShotSch
         return firetime;
     }
 
-    protected void setFireTime(LocalDateTime firetime) {
-        this.firetime = firetime;
-    }
-
     @Override
     public String toString() {
         return this.getClass().getSimpleName() + ": " + firetime.toString();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AbstractOneShotSchedulable that = (AbstractOneShotSchedulable) o;
+
+        return firetime.equals(that.firetime);
+
+    }
+
+    @Override
+    public int hashCode() {
+        return firetime.hashCode();
     }
 }

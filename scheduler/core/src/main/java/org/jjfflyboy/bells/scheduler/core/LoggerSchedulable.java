@@ -11,13 +11,11 @@ import java.util.concurrent.Callable;
 /**
  * @author jfraney
  */
-public class LoggerSchedulable implements Scheduler.OneShotSchedulable {
+public class LoggerSchedulable extends AbstractOneShotSchedulable {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggerSchedulable.class);
-    private final LocalDateTime firetime = LocalDateTime.now().plus(Duration.ofMinutes(5));
 
-    @Override
-    public LocalDateTime getFireTime() {
-        return firetime;
+    public LoggerSchedulable() {
+        super(LocalDateTime.now().plus(Duration.ofMinutes(5)));
     }
 
     @Override

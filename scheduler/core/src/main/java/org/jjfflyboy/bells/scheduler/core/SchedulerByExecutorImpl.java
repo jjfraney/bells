@@ -16,15 +16,50 @@ import java.util.stream.Collectors;
 public class SchedulerByExecutorImpl implements Scheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(Scheduler.class);
     private final ScheduledExecutorService scheduler =  Executors.newScheduledThreadPool(1);
-    private final List<Scheduled> scheduleds = new ArrayList<>();
+    private final Set<Scheduled> scheduleds = new HashSet<>();
 
     @Override
     public void scheduleOneShot(List<OneShotSchedulable> schedulables) {
-        scheduleds.stream()
+
+        // get those that exist but are not going to be added
+        Set<ScheduledOneShot> exists = scheduleds.stream()
                 .filter(s -> s instanceof  ScheduledOneShot)
-                .forEach(Scheduled::cancel);
-        List<Scheduled> ns = schedulables.stream().map(ScheduledOneShot::new).collect(Collectors.toList());
-        scheduleds.addAll(ns);
+                .map(s -> (ScheduledOneShot) s)
+                .collect(Collectors.toSet());
+
+        Set<OneShotSchedulable> toCancel = exists.stream()
+                .map(s -> (OneShotSchedulable)s.schedulable)
+                .collect(Collectors.toSet());
+        Set<OneShotSchedulable> toSchedule = new HashSet<>(schedulables);
+
+        // only the ones to be canceled remain
+        toCancel.removeAll(toSchedule);
+
+        // cancel the existing one shots
+        exists.stream()
+                .filter(s-> toCancel.contains(s.schedulable))
+                .forEach(s-> s.cancel());
+
+        // remove the existing canceled one shots for the tracking set
+        List<ScheduledOneShot> canceled = exists.stream()
+                .filter(s-> toCancel.contains(s.schedulable))
+                .collect(Collectors.toList());
+        scheduleds.removeAll(canceled);
+        exists.removeAll(canceled);
+
+
+        // only the ones to add remain
+        List<OneShotSchedulable> remaining = exists.stream()
+                .map(s->(OneShotSchedulable)s.schedulable)
+                .collect(Collectors.toList());
+        toSchedule.removeAll(remaining);
+
+        // schedule the ones to add
+        List<Scheduled> scheduled = toSchedule.stream()
+                .map(ScheduledOneShot::new)
+                .collect(Collectors.toList());
+        scheduleds.addAll(scheduled);
+        LOGGER.debug("after scheduling.  scheduled={}", scheduleds);
     }
 
     @Override
@@ -46,6 +81,9 @@ public class SchedulerByExecutorImpl implements Scheduler {
             this.schedulable = schedulable;
          }
         public abstract void cancel();
+
+        @Override
+        public String toString() {return schedulable.toString();}
     }
 
     private class ScheduledPeriodic extends Scheduled {

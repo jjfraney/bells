@@ -22,4 +22,19 @@ public abstract class AbstractPeriodicSchedulable implements Scheduler.PeriodicS
         return this.getClass().getSimpleName() + ": " + period.toString();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AbstractPeriodicSchedulable that = (AbstractPeriodicSchedulable) o;
+
+        return getPeriod().equals(that.getPeriod());
+
+    }
+
+    @Override
+    public int hashCode() {
+        return getPeriod().hashCode();
+    }
 }

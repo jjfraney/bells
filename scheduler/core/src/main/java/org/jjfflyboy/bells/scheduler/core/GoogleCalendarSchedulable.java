@@ -19,7 +19,7 @@ public class GoogleCalendarSchedulable extends AbstractPeriodicSchedulable {
     private final Scheduler songScheduler;
 
     public GoogleCalendarSchedulable() {
-        super(Duration.ofMinutes(3));
+        super(Duration.ofMinutes(30));
         this.songScheduler = new SchedulerByExecutorImpl();
     }
 
