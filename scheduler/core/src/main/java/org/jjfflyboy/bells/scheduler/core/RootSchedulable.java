@@ -13,7 +13,7 @@ import java.util.concurrent.Callable;
 /**
  * @author jfraney
  */
-public class RootSchedulable implements Scheduler.Schedulable {
+public class RootSchedulable implements Scheduler.OneShotSchedulable {
     private static final Logger LOGGER = LoggerFactory.getLogger(RootSchedulable.class);
     private LocalDateTime firetime = LocalDateTime.now().plus(Duration.ofMinutes(10));
     private final Scheduler scheduler;
@@ -28,15 +28,15 @@ public class RootSchedulable implements Scheduler.Schedulable {
     }
 
     @Override
-    public Callable<LocalDateTime> getCallable() {
+    public Callable<Void> getCallable() {
         return () -> {
             LOGGER.info("rescheduling.  firetime={}, now={}",
                     getFireTime(), LocalDateTime.now());
-            Scheduler.Schedulable newRoot = new RootSchedulable(scheduler);
-            List<Scheduler.Schedulable> schedulables = new ArrayList<>(Arrays.asList(newRoot, new LoggerSchedulable()));
-            scheduler.schedule(schedulables);
+            Scheduler.OneShotSchedulable newRoot = new RootSchedulable(scheduler);
+            List<Scheduler.OneShotSchedulable> schedulables = new ArrayList<>(Arrays.asList(newRoot, new LoggerSchedulable()));
+            scheduler.scheduleOneShot(schedulables);
 
-            return newRoot.getFireTime();
+            return null;
         };
     }
 }

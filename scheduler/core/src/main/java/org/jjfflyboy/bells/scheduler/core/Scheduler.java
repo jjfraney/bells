@@ -1,6 +1,8 @@
 package org.jjfflyboy.bells.scheduler.core;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.Period;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -10,18 +12,25 @@ import java.util.concurrent.Callable;
 public interface Scheduler {
     interface Schedulable {
 
+
+        Callable<Void> getCallable();
+    }
+    interface OneShotSchedulable extends Schedulable {
         /**
          * get the time it should be fired
          * @return
          */
         LocalDateTime getFireTime();
-
-        <V> Callable<V> getCallable();
+    }
+    interface PeriodicSchedulable extends Schedulable {
+        Duration getPeriod();
     }
 
     /**
      * replace existing schedulable with these.
      * @param schedulables
      */
-    void schedule(List<Schedulable> schedulables);
+    void schedulePeriodic(List<PeriodicSchedulable> schedulables);
+    void scheduleOneShot(List<OneShotSchedulable> schedulables);
+
 }

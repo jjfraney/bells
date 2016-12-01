@@ -5,10 +5,10 @@ import java.time.LocalDateTime;
 /**
  * @author jfraney
  */
-public abstract class AbstractSchedulable implements Scheduler.Schedulable {
+public abstract class AbstractOneShotSchedulable implements Scheduler.OneShotSchedulable {
     private LocalDateTime firetime;
 
-    public AbstractSchedulable(LocalDateTime firetime) {
+    public AbstractOneShotSchedulable(LocalDateTime firetime) {
         this.firetime = firetime;
     }
     @Override

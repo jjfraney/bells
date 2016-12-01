@@ -19,53 +19,98 @@ public class SchedulerByExecutorImpl implements Scheduler {
     private final List<Scheduled> scheduleds = new ArrayList<>();
 
     @Override
-    public void schedule(List<Schedulable> schedulables) {
-        scheduleds.stream().forEach(Scheduled::cancel);
-        scheduleds.clear();
-        List<Scheduled> ns = schedulables.stream().map(Scheduled::new).collect(Collectors.toList());
+    public void scheduleOneShot(List<OneShotSchedulable> schedulables) {
+        scheduleds.stream()
+                .filter(s -> s instanceof  ScheduledOneShot)
+                .forEach(Scheduled::cancel);
+        List<Scheduled> ns = schedulables.stream().map(ScheduledOneShot::new).collect(Collectors.toList());
         scheduleds.addAll(ns);
     }
 
+    @Override
+    public void schedulePeriodic(List<PeriodicSchedulable> schedulables) {
+        scheduleds.stream()
+                .filter(s -> s instanceof  ScheduledPeriodic)
+                .forEach(Scheduled::cancel);
+        List<Scheduled> ns = schedulables.stream().map(ScheduledPeriodic::new).collect(Collectors.toList());
+        scheduleds.addAll(ns);
+    }
 
-    private class Scheduled {
-        private final Schedulable schedulable;
+    private abstract class Scheduled {
+        protected final Schedulable schedulable;
+
+        public Scheduled(OneShotSchedulable schedulable) {
+            this.schedulable = schedulable;
+        }
+        public Scheduled(PeriodicSchedulable schedulable) {
+            this.schedulable = schedulable;
+         }
+        public abstract void cancel();
+    }
+
+    private class ScheduledPeriodic extends Scheduled {
+        private ScheduledFuture<?> future;
+
+        public ScheduledPeriodic(PeriodicSchedulable schedulable) {
+            super(schedulable);
+            long initialDelay = 1000L;
+            long delay = schedulable.getPeriod().toMillis();
+            LOGGER.debug("periodic.  schedulable={}", schedulable);
+            this.future = scheduler.scheduleAtFixedRate(runnable, initialDelay, delay, TimeUnit.MILLISECONDS);
+        }
+
+        @Override
+        public void cancel() {
+            LOGGER.debug("Cancelling schedulable.  schedulable={}", schedulable);
+            future.cancel(true);
+        }
+
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    schedulable.getCallable().call();
+                } catch(Exception e) {
+                    LOGGER.debug("call had an error", e);
+                }
+            }
+        };
+    }
+    private class ScheduledOneShot extends Scheduled {
         private ScheduledFuture<Void> future;
 
-
-        public Scheduled(Schedulable schedulable) {
-            this.schedulable = schedulable;
-
-            Callable<Void> callable = new Callable<Void>() {
-                @Override
-                public Void call() {
-                    try {
-                        schedulable.getCallable().call();
-                    } catch(Exception e) {
-                        LOGGER.debug("call had an error", e);
-                    }
-                    return null;
-                }
-                public String toString() {
-                    return schedulable.getFireTime().toString();
-                }
-            };
-
+        public ScheduledOneShot(OneShotSchedulable schedulable) {
+            super(schedulable);
             Duration d = Duration.between(LocalDateTime.now(), schedulable.getFireTime());
-            long milli = d.getSeconds() * 1000 + d.getNano()/1000000;
-            LOGGER.debug("scheduling.  duration={}, duration={}ms, schedulable={}", d, milli, schedulable);
-            this.future = scheduler.schedule(callable, milli, TimeUnit.MILLISECONDS);
+            LOGGER.debug("one shot.  schedulable={}", schedulable);
+            this.future = scheduler.schedule(callable, d.toMillis(), TimeUnit.MILLISECONDS);
         }
+
+        @Override
         public void cancel() {
-            LOGGER.debug("cancelling a scheduled call, this={}", schedulable);
-            this.future.cancel(true);
+            LOGGER.debug("Cancelling schedulable.  schedulable={}", schedulable);
+            future.cancel(true);
         }
+
+        Callable<Void> callable = new Callable<Void>() {
+            @Override
+            public Void call() {
+                try {
+                    return schedulable.getCallable().call();
+                } catch(Exception e) {
+                    LOGGER.debug("call had an error", e);
+                }
+                return null;
+            }
+        };
+
     }
 
     public static void main(String[] args) {
-        SchedulerByExecutorImpl impl = new SchedulerByExecutorImpl();
+        Scheduler masterScheduler = new SchedulerByExecutorImpl();
 
-        Schedulable s = new GoogleCalendarSchedulable(impl);
-        List<Schedulable> schedulables = new ArrayList<>(Arrays.asList(s));
-        impl.schedule(schedulables);
+        GoogleCalendarSchedulable s = new GoogleCalendarSchedulable();
+        List<PeriodicSchedulable> schedulables = new ArrayList<>(Arrays.asList(s));
+        masterScheduler.schedulePeriodic(schedulables);
     }
 }
