@@ -91,8 +91,7 @@ public class CalendarByGoogle implements Calendar {
                         .build();
         Credential credential = new AuthorizationCodeInstalledApp(
                 flow, new LocalServerReceiver()).authorize("user");
-        System.out.println(
-                "Credentials saved to " + DATA_STORE_DIR.getAbsolutePath());
+        LOGGER.info("Credentials saved to {}", DATA_STORE_DIR);
         return credential;
     }
 
@@ -153,8 +152,8 @@ public class CalendarByGoogle implements Calendar {
         } catch(IOException e) {
             throw new SchedulerException(e);
         }
-        items.stream().forEach(i -> LOGGER.debug("event from google.  id={}, icalId={}, summary={}",
-                i.getId(), i.getICalUID(), i.getSummary())
+        items.stream().forEach(i -> LOGGER.debug("event:  id={}, summary={}, start={}",
+                i.getId(), i.getSummary(), i.getStart().getDateTime())
         );
 
         return items.stream()
