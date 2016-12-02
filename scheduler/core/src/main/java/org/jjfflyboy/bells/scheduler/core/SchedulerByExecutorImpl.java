@@ -16,59 +16,46 @@ import java.util.stream.Collectors;
 public class SchedulerByExecutorImpl implements Scheduler {
     private static final Logger LOGGER = LoggerFactory.getLogger(Scheduler.class);
     private final ScheduledExecutorService scheduler =  Executors.newScheduledThreadPool(1);
-    private final Set<Scheduled> scheduleds = new HashSet<>();
+    private final Map<OneShotSchedulable, ScheduledOneShot> scheduledOneShots = new HashMap<>();
+    private final Map<PeriodicSchedulable, ScheduledPeriodic> scheduledPeriodics = new HashMap<>();
 
     @Override
     public void scheduleOneShot(List<OneShotSchedulable> schedulables) {
 
-        // get those that exist but are not going to be added
-        Set<ScheduledOneShot> exists = scheduleds.stream()
-                .filter(s -> s instanceof  ScheduledOneShot)
-                .map(s -> (ScheduledOneShot) s)
-                .collect(Collectors.toSet());
-
-        Set<OneShotSchedulable> toCancel = exists.stream()
-                .map(s -> (OneShotSchedulable)s.schedulable)
-                .collect(Collectors.toSet());
         Set<OneShotSchedulable> toSchedule = new HashSet<>(schedulables);
+
+        Set<OneShotSchedulable> toCancel = new HashSet<>(scheduledOneShots.keySet());
 
         // only the ones to be canceled remain
         toCancel.removeAll(toSchedule);
 
-        // cancel the existing one shots
-        exists.stream()
-                .filter(s-> toCancel.contains(s.schedulable))
-                .forEach(s-> s.cancel());
+        // only the new schedulables remain
+        toSchedule.removeAll(scheduledOneShots.keySet());
 
-        // remove the existing canceled one shots for the tracking set
-        List<ScheduledOneShot> canceled = exists.stream()
-                .filter(s-> toCancel.contains(s.schedulable))
-                .collect(Collectors.toList());
-        scheduleds.removeAll(canceled);
-        exists.removeAll(canceled);
+        // then cancel those to be canceled....
+        toCancel.stream()
+                .map(scheduledOneShots::get)
+                .forEach(ScheduledOneShot::cancel);
 
+        // ..remove them from our registry
+        toCancel.forEach(scheduledOneShots::remove);
 
-        // only the ones to add remain
-        List<OneShotSchedulable> remaining = exists.stream()
-                .map(s->(OneShotSchedulable)s.schedulable)
-                .collect(Collectors.toList());
-        toSchedule.removeAll(remaining);
-
-        // schedule the ones to add
-        List<Scheduled> scheduled = toSchedule.stream()
+        // schedule those to be scheduled and add them to the registry
+        toSchedule.stream()
                 .map(ScheduledOneShot::new)
-                .collect(Collectors.toList());
-        scheduleds.addAll(scheduled);
-        LOGGER.debug("after scheduling.  scheduled={}", scheduleds);
+                .forEach(sd -> scheduledOneShots.put((OneShotSchedulable)sd.schedulable, sd));
+        LOGGER.debug("after scheduling.  scheduled={}", scheduledOneShots.values());
     }
 
     @Override
     public void schedulePeriodic(List<PeriodicSchedulable> schedulables) {
-        scheduleds.stream()
-                .filter(s -> s instanceof  ScheduledPeriodic)
-                .forEach(Scheduled::cancel);
-        List<Scheduled> ns = schedulables.stream().map(ScheduledPeriodic::new).collect(Collectors.toList());
-        scheduleds.addAll(ns);
+        scheduledPeriodics.values().forEach(ScheduledPeriodic::cancel);
+        scheduledPeriodics.clear();
+        schedulables.stream()
+                .map(ScheduledPeriodic::new)
+                .forEach(sd -> scheduledPeriodics.put((PeriodicSchedulable)sd.schedulable, sd));
+        LOGGER.debug("after scheduling.  scheduled={}", scheduledPeriodics.values());
+
     }
 
     private abstract class Scheduled {
