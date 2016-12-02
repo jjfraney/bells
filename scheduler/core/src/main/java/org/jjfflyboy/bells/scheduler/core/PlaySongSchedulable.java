@@ -45,4 +45,10 @@ public class PlaySongSchedulable extends AbstractOneShotSchedulable {
         result = 31 * result + song.hashCode();
         return result;
     }
+
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + " " + getFireTime().toString() + " " + song;
+    }
+
 }

@@ -19,7 +19,7 @@ public abstract class AbstractPeriodicSchedulable implements Scheduler.PeriodicS
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + ": " + period.toString();
+        return this.getClass().getSimpleName() + " " + period.toString();
     }
 
     @Override

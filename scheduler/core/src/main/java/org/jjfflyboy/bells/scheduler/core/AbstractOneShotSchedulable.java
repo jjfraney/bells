@@ -18,7 +18,7 @@ public abstract class AbstractOneShotSchedulable implements Scheduler.OneShotSch
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + ": " + firetime.toString();
+        return this.getClass().getSimpleName() + " " + firetime.toString();
     }
 
     @Override
