@@ -15,15 +15,19 @@ public class Player {
     private static final Logger LOGGER = LoggerFactory.getLogger(Player.class);
 
     public static void play(String song) {
-        MPC mpc = new MPC();
+        Settings settings = new PropertySettings();
+        String host = settings.getMpdHost();
+        Integer port = settings.getMpdPort();
+        MPC mpc = new MPC(host, port);
         play(song, mpc);
     }
 
     private static void play(String song, MPC mpc) {
 
+        Status status = new Status();
         Status.Response statusResponse = null;
         try {
-            statusResponse = send(mpc, new Status());
+            statusResponse = send(mpc, status);
         } catch (RuntimeException e) {
             LOGGER.error("Unable to get status. song={}, message={}", song, e.getMessage());
             return;
@@ -39,9 +43,13 @@ public class Player {
         Clear clear = new Clear();
         Add add = new Add(song);
         Play play = new Play();
-        CommandList commandList = new CommandList(clear, add, play);
+
+        CommandList commandList = new CommandList(clear, add, play, status);
         try {
-            send(mpc, commandList);
+            CommandList.Response commandListResponse = send(mpc, commandList);
+            int statusIndx = commandListResponse.getResponses().size() - 1;
+            Status.Response sr = (Status.Response) commandListResponse.getResponses().get(statusIndx);
+            LOGGER.debug("player status: {}, play error: {},", sr.getState().orElse("unknown"), sr.getError().orElse("no error"));
         } catch (RuntimeException e) {
             LOGGER.error("Unable to play song. song={}, message={}", song, e.getMessage());
         }
@@ -78,6 +86,6 @@ public class Player {
     }
 
     public static void main(String[] args) {
-        Player.play("unknown.ogg");
+        Player.play("call-to-mass.ogg");
     }
 }
