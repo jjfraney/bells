@@ -21,6 +21,7 @@ public class PlaySongSchedulable extends AbstractOneShotSchedulable {
     @Override
     public Callable<Void> getCallable() {
         return () -> {
+            Player.play(song);
             LOGGER.info("playing, song={}, now={}",
                     song, LocalDateTime.now());
             return null;
