@@ -50,35 +50,34 @@ public class SchedulerByExecutorImpl implements Scheduler {
     private ScheduledOneShot schedule(OneShotSchedulable schedulable) {
         LOGGER.debug("Scheduling one shot.  schedulable={}", schedulable);
         ScheduledOneShot scheduled = new ScheduledOneShot(schedulable);
-        scheduledOneShots.put(schedulable, scheduled);
         return scheduled;
     }
     private ScheduledPeriodic schedule(PeriodicSchedulable schedulable) {
         LOGGER.debug("Scheduling periodic.  schedulable={}", schedulable);
         ScheduledPeriodic scheduled = new ScheduledPeriodic(schedulable);
-        scheduledPeriodics.put(schedulable, scheduled);
         return scheduled;
     }
     private void cancel(OneShotSchedulable schedulable) {
         LOGGER.debug("Cancelling one shot.  schedulable={}", schedulable);
         scheduledOneShots.get(schedulable).cancel();
-        scheduledOneShots.remove(schedulable);
     }
     private void cancel(PeriodicSchedulable schedulable) {
         LOGGER.debug("Cancelling periodic.  schedulable={}", schedulable);
         scheduledPeriodics.get(schedulable).cancel();
-        scheduledPeriodics.remove(schedulable);
     }
 
 
     private abstract class Scheduled {
         protected final Callable callable;
+        protected final Schedulable schedulable;
 
         public Scheduled(OneShotSchedulable schedulable) {
             this.callable = schedulable.getCallable();
+            this.schedulable = schedulable;
         }
         public Scheduled(PeriodicSchedulable schedulable) {
             this.callable = schedulable.getCallable();
+            this.schedulable = schedulable;
          }
         public abstract void cancel();
 
@@ -92,11 +91,14 @@ public class SchedulerByExecutorImpl implements Scheduler {
             long initialDelay = 1000L;
             long delay = schedulable.getPeriod().toMillis();
             this.future = scheduler.scheduleAtFixedRate(wrapper, initialDelay, delay, TimeUnit.MILLISECONDS);
+            scheduledPeriodics.put(schedulable, this);
+
         }
 
         @Override
         public void cancel() {
             future.cancel(true);
+            scheduledPeriodics.remove(schedulable);
         }
 
         Runnable wrapper = new Runnable() {
@@ -106,6 +108,8 @@ public class SchedulerByExecutorImpl implements Scheduler {
                     callable.call();
                 } catch(Exception e) {
                     LOGGER.debug("call had an error", e);
+                } finally {
+                    scheduledPeriodics.remove(schedulable);
                 }
             }
         };
@@ -117,11 +121,13 @@ public class SchedulerByExecutorImpl implements Scheduler {
             super(schedulable);
             Duration d = Duration.between(LocalDateTime.now(), schedulable.getFireTime());
             this.future = scheduler.schedule(wrapper, d.toMillis(), TimeUnit.MILLISECONDS);
+            scheduledOneShots.put(schedulable, this);
         }
 
         @Override
         public void cancel() {
             future.cancel(true);
+            scheduledOneShots.remove(schedulable);
         }
 
         Callable<Void> wrapper = new Callable<Void>() {
@@ -131,6 +137,8 @@ public class SchedulerByExecutorImpl implements Scheduler {
                     callable.call();
                 } catch(Exception e) {
                     LOGGER.debug("call had an error", e);
+                } finally {
+                    scheduledOneShots.remove(schedulable);
                 }
                 return null;
             }
