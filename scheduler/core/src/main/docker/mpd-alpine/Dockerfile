@@ -9,16 +9,24 @@ RUN apk -q update \
     && apk -q --no-progress add mpd="$MPD_VERSION" \
     && rm -rf /var/cache/apk/*
 
-# suitable for alpine container on ubuntu
-# gid 29: missing from alpine; 
-RUN addgroup -g 29 -S hostaudio
 
-# create mpd user with host's audio group
-RUN adduser -u 6500 -G hostaudio -S cmpd
+# suitable for alpine container on ubuntu
+# gid 29: missing from alpine;
+ARG AUDIO_GID=29
+ARG AUDIO_GROUP=audio
+ARG UID=6500
+ARG USER=mpd
+
+# modify mpd user with host's audio group
+RUN deluser $USER \
+    && delgroup $AUDIO_GROUP \
+    && adduser -u $UID -s /sbin/nologin -D -H $USER \
+    && addgroup -g $AUDIO_GID $AUDIO_GROUP \
+    && addgroup $USER $AUDIO_GROUP
 
 # this mpd.conf file should specify:
 #
-#  user 'cmpd'
+#  user 'mpd'
 #  music_directory "/mpd/music"
 #  playlist_directory "/mpd/data/playlists"
 #  db_file "/mpd/data/file"
@@ -36,5 +44,6 @@ VOLUME ["/mpd/music", "/mpd/data", "/mpd/log"]
 # Entry point for mpc update and stuff
 EXPOSE 6600
 
+USER $USER
 ENTRYPOINT ["mpd", "--stdout", "--no-daemon", "--verbose", "/etc/mpd.conf"]
 
