@@ -13,11 +13,17 @@ import java.io.IOException;
  */
 public class Player {
     private static final Logger LOGGER = LoggerFactory.getLogger(Player.class);
+    private static String host;
+    private static Integer port;
+
+    static {
+        Settings settings = new PropertySettings();
+        host = settings.getMpdHost();
+        port = settings.getMpdPort();
+        LOGGER.info("Player host={}, port={}", host, port);
+    }
 
     public static void play(String song) {
-        Settings settings = new PropertySettings();
-        String host = settings.getMpdHost();
-        Integer port = settings.getMpdPort();
         MPC mpc = new MPC(host, port);
         play(song, mpc);
     }
