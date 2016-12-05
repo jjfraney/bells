@@ -33,6 +33,7 @@ public class GoogleCalendarSchedulable extends AbstractPeriodicSchedulable {
         LOGGER.debug("calendar received.  event count={}", events.size());
         List<Scheduler.OneShotSchedulable> schedulables = events.stream()
                 .map(SongEvent::new)
+                .filter(e -> e.getTime().toLocalDateTime().isAfter(LocalDateTime.now()))
                 .map(e -> new PlaySongSchedulable(e.getTitle(), e.getTime().toLocalDateTime()))
                 .collect(Collectors.toList());
         return schedulables;
