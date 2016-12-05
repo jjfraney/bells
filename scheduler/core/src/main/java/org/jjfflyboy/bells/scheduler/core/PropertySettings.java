@@ -3,7 +3,6 @@ package org.jjfflyboy.bells.scheduler.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -16,9 +15,11 @@ public class PropertySettings implements Settings {
     private static Properties properties = new Properties();
     static {
         try(InputStream in = PropertySettings.class.getResourceAsStream("/bell-tower.properties")) {
-            properties.load(in);
+            if(in != null) {
+                properties.load(in);
+            }
         } catch(IOException e) {
-            LOGGER.warn("settings file not available: {}", e.getMessage());
+            LOGGER.warn("unable to load resource to properties: {}", e.getMessage());
         }
     }
 
