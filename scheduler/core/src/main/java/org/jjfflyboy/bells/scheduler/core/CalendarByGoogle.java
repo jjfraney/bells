@@ -12,7 +12,6 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.DateTime;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.calendar.CalendarScopes;
-import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
 import org.slf4j.Logger;
@@ -21,8 +20,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.time.Duration;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
@@ -70,12 +69,21 @@ public class CalendarByGoogle implements Calendar {
         }
     }
 
+    private final String calendarId;
+    private final Duration lookAhead;
+
+    public CalendarByGoogle(Duration lookAhead) {
+        Settings settings = new PropertySettings();
+        calendarId = settings.getCalendarId();
+        this.lookAhead = lookAhead;
+    }
+
     /**
      * Creates an authorized Credential object.
      * @return an authorized Credential object.
      * @throws IOException
      */
-    public static Credential authorize() throws IOException {
+    public Credential authorize() throws IOException {
         // Load client secrets.
         InputStream in =
                 BellTower.class.getResourceAsStream("/client_secret.json");
@@ -100,7 +108,7 @@ public class CalendarByGoogle implements Calendar {
      * @return an authorized Calendar client service
      * @throws IOException
      */
-    public static com.google.api.services.calendar.Calendar getCalendarService() throws IOException {
+    public com.google.api.services.calendar.Calendar getCalendarService() throws IOException {
         Credential credential = authorize();
         return new com.google.api.services.calendar.Calendar.Builder(
                 HTTP_TRANSPORT, JSON_FACTORY, credential)
@@ -140,8 +148,9 @@ public class CalendarByGoogle implements Calendar {
 
             // List the next 10 events from the primary calendar.
             DateTime now = new DateTime(ZonedDateTime.now().toEpochSecond() * 1000);
-            DateTime later = new DateTime(ZonedDateTime.now().plusDays(1).toEpochSecond() * 1000);
-            Events events = service.events().list("stveronica.com_j1aosivo8imq8bhlipmjqk8ph4@group.calendar.google.com")
+            DateTime later = new DateTime(ZonedDateTime.now().plus(lookAhead).toEpochSecond() * 1000);
+            LOGGER.debug("query now={}, lookahead={}, later={}", now, lookAhead, later);
+            Events events = service.events().list(calendarId)
                     .setMaxResults(10)
                     .setTimeMin(now)
                     .setTimeMax(later)

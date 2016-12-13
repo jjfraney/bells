@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.Period;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,17 +18,33 @@ public class GoogleCalendarSchedulable extends AbstractPeriodicSchedulable {
     private static final Logger LOGGER = LoggerFactory.getLogger(GoogleCalendarSchedulable.class);
     private final Scheduler songScheduler;
 
+    private final Duration period;
+    private final Duration lookAhead;
+    private final Duration callToMassDuration;
+
     public GoogleCalendarSchedulable() {
-        super(Duration.ofMinutes(30));
+        Settings settings = new PropertySettings();
+        period = settings.getCalendarQueryPeriod();
+        lookAhead = settings.getCalendarQueryLookAhead();
+        callToMassDuration = settings.getCallToMassDuration();
+
+        LOGGER.info("Calendar query interval={}, lookAhead={}, callToMassDuration={}", period, lookAhead, callToMassDuration);
+        if(lookAhead.compareTo(period) < 0) {
+            throw new RuntimeException("lookahead must be longer than query interval");
+        }
         this.songScheduler = new SchedulerByExecutorImpl();
+    }
+
+    @Override
+    public Duration getPeriod() {
+        return period;
     }
 
     public List<Scheduler.OneShotSchedulable> getCalendar() {
         LOGGER.info("getting calendar");
-        Calendar calendar = new CalendarByGoogle();
+        Calendar calendar = new CalendarByGoogle(lookAhead);
         List<Calendar.Event> events = calendar.getEvents();
-        events.stream()
-                .forEach(e -> LOGGER.debug("event={}, time={}", e.getTitle(), e.getTime().toLocalDateTime()));
+        events.forEach(e -> LOGGER.debug("event={}, time={}", e.getTitle(), e.getTime().toLocalDateTime()));
         LOGGER.debug("calendar received.  event count={}", events.size());
         List<Scheduler.OneShotSchedulable> schedulables = events.stream()
                 .map(SongEvent::new)
@@ -49,7 +64,7 @@ public class GoogleCalendarSchedulable extends AbstractPeriodicSchedulable {
         public ZonedDateTime getTime() {
             ZonedDateTime result;
             if(isMass()) {
-                result = event.getTime().minusMinutes(2);
+                result = event.getTime().minus(callToMassDuration);
             } else {
                 result = event.getTime();
             }
