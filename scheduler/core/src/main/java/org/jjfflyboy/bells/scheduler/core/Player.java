@@ -16,12 +16,14 @@ public class Player {
     private static final Logger LOGGER = LoggerFactory.getLogger(Player.class);
     private static String host;
     private static Integer port;
+    private static String stragegy;
 
     static {
         Settings settings = new PropertySettings();
         host = settings.getMpdHost();
         port = settings.getMpdPort();
-        LOGGER.info("Player host={}, port={}", host, port);
+        stragegy = settings.getPlayerStrategy();
+        LOGGER.info("Player host={}, port={}, strategy={}", host, port, stragegy);
     }
 
     public static void play(String song) {
@@ -95,7 +97,11 @@ public class Player {
     }
 
     private static Strategy getStrategy() {
-        return new StrategySingleStep();
+        if(stragegy.equals("list")) {
+            return new StrategyCommandList();
+        } else {
+            return new StrategySingleStep();
+        }
     }
 
     private static <C extends Command<R>, R extends Command.Response>

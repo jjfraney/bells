@@ -110,4 +110,9 @@ public class PropertySettings implements Settings {
     public Boolean isDebug() {
         return readBoolean("belltower.debug", false);
     }
+
+    @Override
+    public String getPlayerStrategy() {
+        return readString("belltower.player.strategy", "list");
+    }
 }

@@ -30,4 +30,6 @@ public interface Settings {
     Duration getDebugPlayPeriod();
 
     Boolean isDebug();
+
+    String getPlayerStrategy();
 }
