@@ -66,6 +66,10 @@ public class PropertySettings implements Settings {
         }
         return result;
     }
+    private Boolean readBoolean(String name, Boolean dflt) {
+        String asString = readString(name);
+        return asString == null ? dflt : Boolean.parseBoolean(asString);
+    }
 
     @Override
     public String getMpdHost() {
@@ -95,5 +99,15 @@ public class PropertySettings implements Settings {
     @Override
     public Duration getCallToMassDuration() {
         return readDuration("belltower.call-to-mass.duration", "PT2M");
+    }
+
+    @Override
+    public Duration getDebugPlayPeriod() {
+        return readDuration("belltower.debug.play.period", "PT2M");
+    }
+
+    @Override
+    public Boolean isDebug() {
+        return readBoolean("belltower.debug", false);
     }
 }

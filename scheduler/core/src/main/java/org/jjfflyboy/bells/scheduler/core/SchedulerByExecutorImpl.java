@@ -148,9 +148,13 @@ public class SchedulerByExecutorImpl implements Scheduler {
 
     public static void main(String[] args) {
         Scheduler masterScheduler = new SchedulerByExecutorImpl();
+        Settings settings = new PropertySettings();
 
         GoogleCalendarSchedulable s = new GoogleCalendarSchedulable();
         List<PeriodicSchedulable> schedulables = new ArrayList<>(Arrays.asList(s));
+        if(settings.isDebug()) {
+            schedulables.add(new DebugPlaySongSchedulable());
+        }
         masterScheduler.schedulePeriodic(schedulables);
     }
 }

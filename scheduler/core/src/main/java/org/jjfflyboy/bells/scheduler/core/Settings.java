@@ -26,4 +26,8 @@ public interface Settings {
     Duration getCallToMassDuration();
 
     String getCalendarId();
+
+    Duration getDebugPlayPeriod();
+
+    Boolean isDebug();
 }
