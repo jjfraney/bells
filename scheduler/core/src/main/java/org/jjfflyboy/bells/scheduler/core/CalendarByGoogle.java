@@ -86,7 +86,7 @@ public class CalendarByGoogle implements Calendar {
     public Credential authorize() throws IOException {
         // Load client secrets.
         InputStream in =
-                BellTower.class.getResourceAsStream("/client_secret.json");
+                this.getClass().getResourceAsStream("/client_secret.json");
         GoogleClientSecrets clientSecrets =
                 GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
 
@@ -159,7 +159,7 @@ public class CalendarByGoogle implements Calendar {
                     .execute();
             items = events.getItems();
         } catch(IOException e) {
-            throw new SchedulerException(e);
+            throw new RuntimeException(e);
         }
         items.stream().forEach(i -> LOGGER.debug("event:  id={}, summary={}, start={}",
                 i.getId(), i.getSummary(), i.getStart().getDateTime())
