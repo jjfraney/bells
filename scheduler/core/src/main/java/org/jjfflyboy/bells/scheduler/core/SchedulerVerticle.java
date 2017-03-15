@@ -1,5 +1,6 @@
 package org.jjfflyboy.bells.scheduler.core;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectReader;
 import io.vertx.core.AbstractVerticle;
@@ -14,6 +15,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -32,6 +35,9 @@ public class SchedulerVerticle extends AbstractVerticle {
   private void schedule(AsyncResult<Message<String>> r) {
       List<SongEvent> events;
       try {
+          Objects.nonNull(r);
+          Objects.nonNull(r.result());
+          Objects.nonNull(r.result().body());
           String bdy = r.result().body();
           ObjectReader reader = Json.mapper.readerFor(new TypeReference<List<SongEvent>>() {});
           events = reader.readValue(bdy);
@@ -71,6 +77,21 @@ public class SchedulerVerticle extends AbstractVerticle {
           scheduledWithTimerId.put(songEvent, timerId);
       });
 
+      String statusJson;
+      try {
+          SchedulerStatus status = new SchedulerStatus();
+          List<SongEvent> songEvents = new ArrayList<>(scheduledWithTimerId.keySet());
+          Collections.sort(songEvents);
+          status.setScheduledSongs(songEvents);
+          status.setTime(ZonedDateTime.now(ZoneId.systemDefault()));
+          statusJson = Json.mapper
+                  .writer()
+                  .forType(SchedulerStatus.class)
+                  .writeValueAsString(status);
+      } catch (JsonProcessingException e) {
+          throw new RuntimeException(e);
+      }
+      vertx.eventBus().publish("bell-tower.scheduler.status", statusJson);
       LOGGER.info("All scheduled songs: {}", scheduledWithTimerId.keySet());
   }
 
@@ -92,7 +113,11 @@ public class SchedulerVerticle extends AbstractVerticle {
         vertx.eventBus().send("bell-tower.scheduler", "get schedule", this::schedule);
     }
 
-    public static class SongEvent implements Calendar.Event {
+    /**
+     * These describe the events in the calendar, each event tells when a song should be played.
+     * The natural order of song events is the natural order of their scheduled time.
+     */
+    public static class SongEvent implements Calendar.Event, Comparable<SongEvent> {
         private ZonedDateTime time;
         private String title;
         @Override
@@ -127,6 +152,35 @@ public class SchedulerVerticle extends AbstractVerticle {
         @Override
         public int hashCode() {
             return Objects.hash(getTime(), getTitle());
+        }
+
+        @Override
+        public int compareTo(SongEvent songEvent) {
+            return this.getTime().compareTo(songEvent.getTime());
+        }
+    }
+
+    /**
+     * Data published to other verticles.
+     */
+    public static class SchedulerStatus {
+      private ZonedDateTime time;
+      private List<SongEvent> scheduledSongs;
+
+        public ZonedDateTime getTime() {
+            return time;
+        }
+
+        public void setTime(ZonedDateTime time) {
+            this.time = time;
+        }
+
+        public List<SongEvent> getScheduledSongs() {
+            return scheduledSongs;
+        }
+
+        public void setScheduledSongs(List<SongEvent> scheduledSongs) {
+            this.scheduledSongs = scheduledSongs;
         }
     }
 }

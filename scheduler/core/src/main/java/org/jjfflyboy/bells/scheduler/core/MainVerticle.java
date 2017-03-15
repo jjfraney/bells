@@ -1,6 +1,7 @@
 package org.jjfflyboy.bells.scheduler.core;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Launcher;
@@ -29,6 +30,7 @@ public class MainVerticle extends AbstractVerticle {
 
         // big decimal retains precision
         Json.mapper.enable(DeserializationFeature.USE_BIG_DECIMAL_FOR_FLOATS);
+        Json.mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     @Override
@@ -36,6 +38,7 @@ public class MainVerticle extends AbstractVerticle {
         DeploymentOptions asWorker = new DeploymentOptions().setWorker(true);
         vertx.deployVerticle(GoogleCalendarVerticle.class.getName(), asWorker);
         vertx.deployVerticle(PlayVerticle.class.getName(), asWorker);
+        vertx.deployVerticle(MqttVerticle.class.getName(), asWorker);
 
         vertx.deployVerticle(SchedulerVerticle.class.getName());
 
