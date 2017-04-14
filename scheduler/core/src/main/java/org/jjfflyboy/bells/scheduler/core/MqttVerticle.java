@@ -34,6 +34,18 @@ public class MqttVerticle  extends AbstractVerticle {
 
     @Override
     public void start(Future<Void> startFuture) throws Exception {
+        Settings settings = new PropertySettings();
+        String clientId = settings.getMqttClientId();
+        String broker = settings.getMqttBroker();
+        String username = settings.getMqttUserName();
+        String password = settings.getMqttPassword();
+        String topicRoot = settings.getMqttTopicRoot();
+
+        LOGGER.info("mqtt broker={}, clientId={}, username={}, topicRoot={}", broker, clientId, username, topicRoot);
+
+        if(topicRoot != null) {
+            topic = topicRoot + topic;
+        }
 
         vertx.eventBus().consumer("bell-tower.scheduler.status", status -> {
             LOGGER.debug("got a scheduler status message, {}", status.body());
@@ -52,7 +64,8 @@ public class MqttVerticle  extends AbstractVerticle {
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
                 String cmd = new String(message.getPayload());
-                LOGGER.debug("received command: '{}'", cmd);
+
+                LOGGER.debug("received command: '{}', topic={}", cmd, topic);
                 if(cmd.startsWith("play")) {
                     vertx.eventBus().send("bell-tower.player", cmd);
                 }
@@ -76,14 +89,32 @@ public class MqttVerticle  extends AbstractVerticle {
         });
 
         try {
+            LOGGER.debug("Connecting to broker");
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
             options.setAutomaticReconnect(true);
+            if(password != null) {
+                options.setPassword(password.toCharArray());
+            }
+            if(username != null) {
+                options.setUserName(username);
+            }
             mqttClient.connect(options);
         } catch(MqttException e) {
+            LOGGER.error("cannot subscribe.", e);
             startFuture.fail(e);
+            return;
         }
-        mqttClient.subscribe("bell-tower/ops");
+
+        try {
+            String opsTopic = topic + "/ops/#";
+            LOGGER.debug("subscribing to broker, topic={}", opsTopic);
+            mqttClient.subscribe(opsTopic);
+        } catch(MqttException e) {
+            LOGGER.error("cannot subscribe.", e);
+            startFuture.fail(e);
+            return;
+        }
 
 
         // when finished, must call this
@@ -118,7 +149,6 @@ public class MqttVerticle  extends AbstractVerticle {
         }
         MqttMessage message = new MqttMessage(json.getBytes());
         try {
-
             mqttClient.publish(topic, message);
         } catch (MqttException e) {
             LOGGER.error("mqtt client fail.", e);

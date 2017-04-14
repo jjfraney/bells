@@ -32,4 +32,14 @@ public interface Settings {
     Boolean isDebug();
 
     String getPlayerStrategy();
+
+    String getMqttBroker();
+
+    String getMqttUserName();
+
+    String getMqttPassword();
+
+    String getMqttTopicRoot();
+
+    String getMqttClientId();
 }

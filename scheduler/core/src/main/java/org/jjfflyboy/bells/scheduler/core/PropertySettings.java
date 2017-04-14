@@ -6,7 +6,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
-import java.time.Period;
 import java.time.format.DateTimeParseException;
 import java.util.Properties;
 
@@ -114,5 +113,30 @@ public class PropertySettings implements Settings {
     @Override
     public String getPlayerStrategy() {
         return readString("belltower.player.strategy", "list");
+    }
+
+    @Override
+    public String getMqttBroker() {
+        return readString("belltower.mqtt.broker", "tcp://iot.eclipse.org:1883");
+    }
+
+    @Override
+    public String getMqttUserName() {
+        return readString("belltower.mqtt.username");
+    }
+
+    @Override
+    public String getMqttPassword() {
+        return readString("belltower.mqtt.password");
+    }
+
+    @Override
+    public String getMqttTopicRoot() {
+        return readString("belltower.mqtt.rootTopic", "");
+    }
+
+    @Override
+    public String getMqttClientId() {
+        return readString("belltower.mqtt.clientId", "bt9s9s8s08s08s08030");
     }
 }
