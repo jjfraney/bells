@@ -52,6 +52,8 @@ public class PlaySegmentedVerticle extends AbstractVerticle {
 
     // id of timer which fires to turn off repeat
     private long timerIdRepeatOff;
+    // id of timer which fires to turn on repeat
+    private long timerIdRepeatOn;
 
     public void start() {
         mpc = new MPC();
@@ -125,7 +127,7 @@ public class PlaySegmentedVerticle extends AbstractVerticle {
 
                 // the middle segment is repeated
                 // timer to turn on repeat
-                vertx.setTimer(repeatOnDelay, h -> {
+                timerIdRepeatOn = vertx.setTimer(repeatOnDelay, h -> {
                     startRepeat();
                 });
 
@@ -145,11 +147,15 @@ public class PlaySegmentedVerticle extends AbstractVerticle {
     }
 
     private void startRepeat() {
+        LOGGER.debug("starting repeats");
         sendCommand(new CommandList(REPEAT_ON, SINGLE_ON));
     }
 
     private void stopRepeat() {
         if(timerIdRepeatOff != 0) {
+            LOGGER.debug("stopping repeats");
+            vertx.cancelTimer(timerIdRepeatOn);
+            timerIdRepeatOn = 0;
             vertx.cancelTimer(timerIdRepeatOff);
             timerIdRepeatOff = 0;
             sendCommand(new CommandList(REPEAT_OFF, SINGLE_OFF));
