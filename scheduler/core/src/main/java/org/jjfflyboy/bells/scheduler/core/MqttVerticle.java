@@ -6,6 +6,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -54,6 +55,18 @@ public class MqttVerticle  extends AbstractVerticle {
                 LOGGER.debug("received command: '{}'", cmd);
                 if(cmd.startsWith("play")) {
                     vertx.eventBus().send("bell-tower.player", cmd);
+                }
+                if(cmd.startsWith("peal")) {
+                    JsonObject msg = new JsonObject()
+                            .put("song", "peal-single")
+                            .put("command", "play")
+                            .put("playTime", 120);
+                    vertx.eventBus().send("bell-tower.segmented", msg);
+                }
+                if(cmd.startsWith("stop")) {
+                    JsonObject msg = new JsonObject()
+                            .put("command", "stop");
+                    vertx.eventBus().send("bell-tower.segmented", msg);
                 }
             }
 

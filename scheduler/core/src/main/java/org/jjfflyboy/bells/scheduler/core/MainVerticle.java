@@ -41,6 +41,7 @@ public class MainVerticle extends AbstractVerticle {
         vertx.deployVerticle(MqttVerticle.class.getName(), asWorker);
 
         vertx.deployVerticle(SchedulerVerticle.class.getName());
+        vertx.deployVerticle(PlaySegmentedVerticle.class.getName());
 
     }
 }
