@@ -63,7 +63,7 @@ public class PlaySegmentedVerticle extends AbstractVerticle {
             JsonObject msg = (JsonObject)message.body();
             String command = msg.getString("command");
             String root = msg.getString("song");
-            Integer playTime = msg.getInteger("playTime");
+            Integer playTime = msg.getInteger("playTime", 5*60);
 
             if(command.startsWith("play")) {
                 playSegmented(root, playTime);

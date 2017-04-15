@@ -70,10 +70,21 @@ public class MqttVerticle  extends AbstractVerticle {
                     vertx.eventBus().send("bell-tower.player", cmd);
                 }
                 if(cmd.startsWith("peal")) {
+                    Integer playTime = null;
+                    String [] opts = cmd.split(" ");
+                    if(opts.length == 2) {
+                        try {
+                            playTime = Integer.parseInt(opts[1]);
+                        } catch(NumberFormatException e) {
+                            LOGGER.error("Cannot parse second field for number.  command={}", cmd);
+                        }
+                    }
                     JsonObject msg = new JsonObject()
-                            .put("song", "peal-single")
-                            .put("command", "play")
-                            .put("playTime", 120);
+                            .put("song", "wedding-peal-reg-interval")
+                            .put("command", "play");
+                    if(playTime != null) {
+                        msg.put("playTime", playTime);
+                    }
                     vertx.eventBus().send("bell-tower.segmented", msg);
                 }
                 if(cmd.startsWith("stop")) {
