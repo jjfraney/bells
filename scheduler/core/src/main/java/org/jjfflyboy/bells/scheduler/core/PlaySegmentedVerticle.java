@@ -56,7 +56,9 @@ public class PlaySegmentedVerticle extends AbstractVerticle {
     private long timerIdRepeatOn;
 
     public void start() {
-        mpc = new MPC();
+        String mpdHost = config().getString("mpdHost");
+        Integer mpdPort = config().getInteger("mpdPort");
+        mpc = new MPC(mpdHost, mpdPort);
 
         vertx.eventBus().consumer("bell-tower.segmented", message -> {
             LOGGER.debug("received command, msg={}", message.body());

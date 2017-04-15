@@ -6,6 +6,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Launcher;
 import io.vertx.core.json.Json;
+import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,13 +36,21 @@ public class MainVerticle extends AbstractVerticle {
 
     @Override
     public void start() throws Exception {
+        Settings settings = new PropertySettings();
+
+        // TODO: conform to vertx configuration for all settings.
+        JsonObject jsonOptions = new JsonObject()
+                .put("mpdHost", settings.getMpdHost())
+                .put("mpdPort", settings.getMpdPort())
+                ;
+        DeploymentOptions options = new DeploymentOptions().setConfig(jsonOptions);
+
         DeploymentOptions asWorker = new DeploymentOptions().setWorker(true);
         vertx.deployVerticle(GoogleCalendarVerticle.class.getName(), asWorker);
         vertx.deployVerticle(PlayVerticle.class.getName(), asWorker);
         vertx.deployVerticle(MqttVerticle.class.getName(), asWorker);
 
         vertx.deployVerticle(SchedulerVerticle.class.getName());
-        vertx.deployVerticle(PlaySegmentedVerticle.class.getName());
-
+        vertx.deployVerticle(PlaySegmentedVerticle.class.getName(), options);
     }
 }
