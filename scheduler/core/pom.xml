@@ -65,7 +65,7 @@
                         </manifestEntries>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>org.jjfflyboy.bells.scheduler.core.SchedulerByExecutorImpl</mainClass>
+                            <mainClass>org.jjfflyboy.bells.scheduler.core.MainVerticle</mainClass>
                         </manifest>
                     </archive>
                 </configuration>
