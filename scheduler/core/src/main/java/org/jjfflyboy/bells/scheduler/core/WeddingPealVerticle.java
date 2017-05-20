@@ -1,6 +1,7 @@
 package org.jjfflyboy.bells.scheduler.core;
 
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Launcher;
 import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
@@ -21,13 +22,17 @@ public class WeddingPealVerticle extends AbstractVerticle {
 
     @Override
     public void start() throws Exception {
-        vertx.deployVerticle(PlaySegmentedVerticle.class.getName());
+        JsonObject mpcOptions = new JsonObject()
+                .put("mpdHost", "localhost")
+                .put("mpdPort", 6600);
+        DeploymentOptions options = new DeploymentOptions().setConfig(mpcOptions);
+        vertx.deployVerticle(PlaySegmentedVerticle.class.getName(), options);
 
         vertx.setTimer(1000, h -> {
             LOGGER.debug("sending message");
             JsonObject msg = new JsonObject()
                     .put("command", "play")
-                    .put("song", "peal-single")
+                    .put("song", "wedding-peal-reg-interval")
                     .put("playTime", 60);
             vertx.eventBus().publish("bell-tower.segmented", msg);
         });
