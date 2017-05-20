@@ -70,21 +70,11 @@ public class MqttVerticle  extends AbstractVerticle {
                     vertx.eventBus().send("bell-tower.player", cmd);
                 }
                 if(cmd.startsWith("peal")) {
-                    Integer playTime = null;
-                    String [] opts = cmd.split(" ");
-                    if(opts.length == 2) {
-                        try {
-                            playTime = Integer.parseInt(opts[1]);
-                        } catch(NumberFormatException e) {
-                            LOGGER.error("Cannot parse second field for number.  command={}", cmd);
-                        }
-                    }
-                    JsonObject msg = new JsonObject()
-                            .put("song", "wedding-peal-reg-interval")
-                            .put("command", "play");
-                    if(playTime != null) {
-                        msg.put("playTime", playTime);
-                    }
+                    JsonObject msg = makeSegmentedSongMessage(cmd, "wedding-peal-reg-interval");
+                    vertx.eventBus().send("bell-tower.segmented", msg);
+                }
+                if(cmd.startsWith("toll")) {
+                    JsonObject msg = makeSegmentedSongMessage(cmd, "funeral-toll");
                     vertx.eventBus().send("bell-tower.segmented", msg);
                 }
                 if(cmd.startsWith("stop")) {
@@ -94,13 +84,45 @@ public class MqttVerticle  extends AbstractVerticle {
                 }
             }
 
+            /**
+             * a beginning, middle and end segments in the player.
+             * @param cmd from the mqtt message
+             * @param bellSong the root name of the segments
+             * @return
+             */
+            private JsonObject makeSegmentedSongMessage(String cmd, String bellSong) {
+                Integer playTime = parsePlayTime(cmd);
+
+                JsonObject msg = new JsonObject()
+                        .put("song", bellSong)
+                        .put("command", "play");
+                if(playTime != null) {
+                    msg.put("playTime", playTime);
+                }
+                return msg;
+            }
+
+            private Integer parsePlayTime(String cmd) {
+                Integer playTime = null;
+                String [] opts = cmd.split(" ");
+                if(opts.length == 2) {
+                    String playTimeArg = opts[1];
+                    try {
+                        playTime = Integer.parseInt(playTimeArg);
+                    } catch(NumberFormatException e) {
+                        LOGGER.error("Cannot parse second field for number.  command={}", cmd);
+                    }
+                }
+                return playTime;
+            }
+
             @Override
             public void deliveryComplete(IMqttDeliveryToken token) {
             }
         });
 
         try {
-            LOGGER.debug("Connecting to broker");
+            LOGGER.debug("Connecting to broker, uri={}", mqttClient.getServerURI());
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
             options.setAutomaticReconnect(true);
