@@ -73,19 +73,20 @@ public class MqttVerticle  extends AbstractVerticle {
                 LOGGER.debug("received command: '{}', topic={}", cmd, topic);
                 if(cmd.startsWith("play")) {
                     vertx.eventBus().send("bell-tower.player", cmd);
-                }
-                if(cmd.startsWith("peal")) {
+                } else if(cmd.startsWith("peal")) {
                     JsonObject msg = makeSegmentedSongMessage(cmd, "wedding-peal-reg-interval");
                     vertx.eventBus().send("bell-tower.segmented", msg);
-                }
-                if(cmd.startsWith("toll")) {
+                } else if(cmd.startsWith("toll")) {
                     JsonObject msg = makeSegmentedSongMessage(cmd, "funeral-toll");
                     vertx.eventBus().send("bell-tower.segmented", msg);
-                }
-                if(cmd.startsWith("stop")) {
+                } else if(cmd.startsWith("stop")) {
                     JsonObject msg = new JsonObject()
                             .put("command", "stop");
                     vertx.eventBus().send("bell-tower.segmented", msg);
+                } else if(cmd.startsWith("status")) {
+                    JsonObject msg = new JsonObject()
+                            .put("command", "status");
+                    vertx.eventBus().publish("bell-tower", msg);
                 }
             }
 
