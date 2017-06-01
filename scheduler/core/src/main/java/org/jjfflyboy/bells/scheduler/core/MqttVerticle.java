@@ -8,7 +8,7 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -55,7 +55,12 @@ public class MqttVerticle  extends AbstractVerticle {
 
         mqttClient = new MqttClient(broker, clientId, persistence);
 
-        mqttClient.setCallback(new MqttCallback() {
+        mqttClient.setCallback(new MqttCallbackExtended() {
+            @Override
+            public void connectComplete(boolean reconnect, String serverURI) {
+                LOGGER.info("mqtt connection established, serverURI={}, reconnect={}", serverURI, reconnect);
+            }
+
             @Override
             public void connectionLost(Throwable cause) {
                 LOGGER.info("mqtt connection was lost.", cause);
