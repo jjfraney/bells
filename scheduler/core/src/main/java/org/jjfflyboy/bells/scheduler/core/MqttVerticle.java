@@ -27,6 +27,8 @@ public class MqttVerticle  extends AbstractVerticle {
     private static Logger LOGGER = LoggerFactory.getLogger(MqttVerticle.class);
 
     private String topic = "bell-tower";
+    private final String opsTopic = topic + "/ops/#";
+
     private String broker = "tcp://iot.eclipse.org:1883";
     private String clientId = "bt9s9s8s08s08s08030";
     private MqttClient mqttClient;
@@ -59,6 +61,17 @@ public class MqttVerticle  extends AbstractVerticle {
             @Override
             public void connectComplete(boolean reconnect, String serverURI) {
                 LOGGER.info("mqtt connection established, serverURI={}, reconnect={}", serverURI, reconnect);
+                vertx.executeBlocking(future -> {
+                    try {
+                        LOGGER.debug("subscribing to broker, topic={}", opsTopic);
+                        mqttClient.subscribe(opsTopic);
+                    } catch (MqttException e) {
+                        LOGGER.error("cannot subscribe.", e);
+                        future.fail(e);
+                    }
+                }, res -> {
+                    LOGGER.debug("subscribe succeeds");
+                });
             }
 
             @Override
@@ -142,22 +155,11 @@ public class MqttVerticle  extends AbstractVerticle {
         } catch(MqttException e) {
             LOGGER.error("cannot subscribe.", e);
             startFuture.fail(e);
-            return;
         }
 
-        try {
-            String opsTopic = topic + "/ops/#";
-            LOGGER.debug("subscribing to broker, topic={}", opsTopic);
-            mqttClient.subscribe(opsTopic);
-        } catch(MqttException e) {
-            LOGGER.error("cannot subscribe.", e);
-            startFuture.fail(e);
-            return;
+        if(! startFuture.isComplete()) {
+            startFuture.complete();
         }
-
-
-        // when finished, must call this
-        startFuture.complete();
     }
 
     private Object deserializeFromBellTower(Message<Object> status, Class<?> cz) {
