@@ -26,7 +26,7 @@ public class FuneralTollVerticle extends AbstractVerticle {
                 .put("mpdHost", "localhost")
                 .put("mpdPort", 6600);
         DeploymentOptions options = new DeploymentOptions().setConfig(mpcOptions);
-        vertx.deployVerticle(PlaySegmentedVerticle.class.getName(), options);
+        vertx.deployVerticle(PlayerVerticle.class.getName(), options);
 
         vertx.setTimer(1000, h -> {
             LOGGER.debug("sending message");

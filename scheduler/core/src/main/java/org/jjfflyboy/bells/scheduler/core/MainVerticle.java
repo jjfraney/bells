@@ -47,10 +47,9 @@ public class MainVerticle extends AbstractVerticle {
 
         DeploymentOptions asWorker = new DeploymentOptions().setWorker(true);
         vertx.deployVerticle(GoogleCalendarVerticle.class.getName(), asWorker);
-        vertx.deployVerticle(PlayVerticle.class.getName(), asWorker);
         vertx.deployVerticle(MqttVerticle.class.getName(), asWorker);
 
         vertx.deployVerticle(SchedulerVerticle.class.getName());
-        vertx.deployVerticle(PlaySegmentedVerticle.class.getName(), options);
+        vertx.deployVerticle(PlayerVerticle.class.getName(), options);
     }
 }

@@ -22,31 +22,70 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
 /**
- * A bell song can have three segments, a beginning, a repeatable middle,
- * and a trailing end.  This verticle plays and controls such a song.
+ * Plays bells songs as per received event from vertx event bus.
  * <p>
- *     The verticle plays the beginning and middle segment.  While
- *     the middle segment is plays, the verticle sets the player to
- *     repeat the song indefinitely.  The verticle will set the player
- *     to stop repeating when the song has played for the desired duration.
+ *     A bell song has fixed or variable length.  This verticle plays either.
+ * </p>
+ * <p>
+ *     A fixed length song is a single media file.  The verticle plays the media
+ *     file without repeats.
+ * </p>
+ * <p>
+ *     A variable length song has 3 media files: a beginning, middle and end.
+ *     The media files are specially created from a single media file.
+ *     A one second crossfade must be built into the files for a single second (1s) crossfade.
+ *     This design supports a seamless play from one segment file to the next and allows
+ *     the middle file to be repeated any number of times for variable length play.
+ *     The media files can be created with the Audacity audio editor from a
+ *     single media sample with a pattern of bell ringing repeated 3 times.
+ *     <ul>
+ *         <li>The beginning starts the song, and the last second overlaps the middle's first second</li>
+ *         <li>The middle's first second overlaps the beginning's last second,
+ *         and the middle's last second overlaps its own first second, and the end's first second.
+ *         <li>The end's first second overlaps the middle's last second
+ *         and ends the song.</li>
+ *     </ul>
+ *     As an example, from a sample of a bell tolling three times at constant frequency of 5 seconds and
+ *     the last toll trailing off for 10 seconds, the three segments would be isolated this way:
+ *     <ul>
+ *         <li>The beginning would start at the start of the original sample and end just before the second toll.
+ *         The length of the beginning would be 5 seconds.</li>
+ *         <li>The middle would start at 4 second offset from the original sample to overlap
+ *         with the last second of the beginning, and end just before
+ *         the third toll at 10 seconds.  The length of the middle is 6 seconds.</li>
+ *         <li>The end would start at 9 second offset of the original sample
+ *         to overlap with the last second of the middle,
+ *         and end after the full trailing tone of the bell.
+ *         The length of the end is 11 seconds.</li>
+ *     </ul>
+ *     The files are played with MPC's crossfade option set to one second (1s).  The crossfade creates a clean segueway
+ *     from one file to the next.  The song is variable because the middle can repeat any number of times
+ *     with clean sequeway to itself.
+ *     This scheme fails with an original sample of randomized bell strikes.
+ *     The frequency of bell strikes,
+ *     and the tone and amplitude of the bell must demonstrate a regular pattern.
  * </p>
  * @author jfraney
  */
-public class PlaySegmentedVerticle extends AbstractVerticle {
+public class PlayerVerticle extends AbstractVerticle {
     // Convenience method so you can run it in your IDE
     public static void main(String[] args) {
         if(args.length == 0) {
-            args = new String[]{"run", PlaySegmentedVerticle.class.getName()};
+            args = new String[]{"run", PlayerVerticle.class.getName()};
         }
         new Launcher().dispatch(args);
     }
-    private static Logger LOGGER = LoggerFactory.getLogger(PlaySegmentedVerticle.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(PlayerVerticle.class);
 
+    private final Clear CLEAR = new Clear();
+    private final Status STATUS = new Status();
+    private final Play PLAY = new Play();
     private final Repeat REPEAT_OFF = new Repeat(Toggle.OFF);
     private final Single SINGLE_OFF = new Single(Toggle.OFF);
     private final Repeat REPEAT_ON = new Repeat(Toggle.ON);
     private final Single SINGLE_ON = new Single(Toggle.ON);
     private final Crossfade CROSSFADE_ON = new Crossfade(1);
+    private final Crossfade CROSSFADE_OFF = new Crossfade(0);
 
     private MPC mpc;
 
@@ -74,6 +113,38 @@ public class PlaySegmentedVerticle extends AbstractVerticle {
                 stopSegmented();
             }
         });
+
+        vertx.eventBus().consumer("bell-tower.player", message -> {
+            String command = message.body().toString();
+            if(command.startsWith("play")) {
+                LOGGER.debug("received command: {}", command);
+                String[] c = command.split(" ");
+                if(c.length > 0) {
+                    playSong(c[1]);
+                }
+            }
+        });
+    }
+
+    private void playSong(String song) {
+
+        if(isPlayerBusy()) {
+            LOGGER.info("Cannot play this song because another is already playing.  song={}", song);
+            return;
+        }
+
+        CommandList commandList = new CommandList(CLEAR, CROSSFADE_OFF, new Add(song), PLAY, STATUS);
+
+        try {
+            CommandList.Response commandListResponse = sendCommand(commandList);
+            LOGGER.trace("play commands response: {}", commandListResponse.getResponseLines());
+            int statusIndx = commandListResponse.getResponses().size() - 1;
+            Status.Response sr = (Status.Response) commandListResponse.getResponses().get(statusIndx);
+            LOGGER.debug("player status: {}, play error: {},", sr.getState().orElse("unknown"), sr.getError().orElse("no error"));
+
+        } catch (RuntimeException e) {
+            LOGGER.error("Unable to play song. song={}, message={}", song, e.getMessage());
+        }
     }
 
     private void playSegmented(String song, Integer playTime) {
@@ -91,12 +162,11 @@ public class PlaySegmentedVerticle extends AbstractVerticle {
         if(isPlayerBusy()) {
             LOGGER.info("Cannot play this song because another is already playing.");
         } else {
-            Clear clear = new Clear();
             Add beg = new Add(leadSegment);
             Add mid = new Add(midSegment);
             Add end = new Add(trailSegment);
             PlaylistInfo info = new PlaylistInfo();
-            CommandList list = new CommandList(clear, beg, mid, end, info, REPEAT_OFF, SINGLE_OFF, CROSSFADE_ON);
+            CommandList list = new CommandList(CLEAR, beg, mid, end, info, REPEAT_OFF, SINGLE_OFF, CROSSFADE_ON);
 
             CommandList.Response response = sendCommand(list);
 
@@ -107,8 +177,7 @@ public class PlaySegmentedVerticle extends AbstractVerticle {
             Integer midTime = infoResponse.getSongMetadata().get(1).getTime().orElse(0);
             Integer endTime = infoResponse.getSongMetadata().get(2).getTime().orElse(0);
 
-            Play play = new Play();
-            Play.Response playResponse = sendCommand(play);
+            Play.Response playResponse = sendCommand(PLAY);
 
             playResponse.getConnectResponse();
 
@@ -181,7 +250,20 @@ public class PlaySegmentedVerticle extends AbstractVerticle {
             String cmdName = command.getClass().getSimpleName();
             Command.Response.Ack ack = response.getAck().orElseThrow(() -> new RuntimeException(cmdName + " fail, no ack"));
             LOGGER.error("The {} command failed: {}", cmdName, ack.getMessageText());
-            throw new RuntimeException(cmdName + " not ok.");
+
+            String commandText = command.text();
+            if(command instanceof CommandList) {
+                commandText = ack.getCurrentCommand();
+            }
+            String msg = new StringBuilder()
+                    .append("command fail. ")
+                    .append("command=").append(commandText)
+                    .append(", ")
+                    .append("error=").append(ack.getError())
+                    .append(",")
+                    .append("message=").append(ack.getMessageText())
+                    .toString();
+            throw new RuntimeException(msg);
         }
         return response;
     }
