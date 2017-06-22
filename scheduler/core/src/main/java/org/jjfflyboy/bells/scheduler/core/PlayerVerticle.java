@@ -1,17 +1,20 @@
 package org.jjfflyboy.bells.scheduler.core;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.github.jjfraney.mpc.Command;
 import com.github.jjfraney.mpc.MPC;
 import com.github.jjfraney.mpc.QueueQueryResponse;
 import com.github.jjfraney.mpc.Toggle;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Launcher;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import musicpd.protocol.Add;
 import musicpd.protocol.Clear;
 import musicpd.protocol.CommandList;
 import musicpd.protocol.Crossfade;
 import musicpd.protocol.Play;
+import musicpd.protocol.PlaylistId;
 import musicpd.protocol.PlaylistInfo;
 import musicpd.protocol.Repeat;
 import musicpd.protocol.Single;
@@ -20,6 +23,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.List;
 
 /**
  * Plays bells songs as per received event from vertx event bus.
@@ -124,8 +130,54 @@ public class PlayerVerticle extends AbstractVerticle {
                 }
             }
         });
+
+        vertx.eventBus().consumer("bell-tower", message -> {
+            LOGGER.debug("received command, msg={}", message.body());
+            JsonObject msg = (JsonObject) message.body();
+            String command = msg.getString("command");
+            if ("status".equals(command)) {
+                publishStatus();
+            }
+        });
+
     }
 
+    private void publishStatus() {
+        String statusJson;
+
+        PlayerStatus status = new PlayerStatus();
+
+        Status.Response statusResponse = sendCommand(new Status());
+        String state = statusResponse.getState().orElse("unknown");
+        status.setState(state);
+
+
+        if(state.equals("play") ) {
+            String songFile = "unknown";
+            Integer songId = statusResponse.getSongId().orElse(-1);
+            if(songId > 0) {
+                QueueQueryResponse playlistIdResponse = sendCommand(new PlaylistId(songId));
+                List<QueueQueryResponse.QueuedSongMetadata> songs = playlistIdResponse.getSongMetadata();
+                if(songs.size() > 0) {
+                    songFile = songs.get(0).getFile().orElse("unknown");
+                }
+            }
+            status.setSongFile(songFile);
+        }
+
+        status.setTime(ZonedDateTime.now(ZoneId.systemDefault()));
+
+        try {
+            statusJson = Json.mapper
+                    .writer()
+                    .forType(PlayerStatus.class)
+                    .writeValueAsString(status);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        vertx.eventBus().publish("bell-tower.player.status", statusJson);
+
+    }
     private void playSong(String song) {
 
         if(isPlayerBusy()) {
@@ -266,5 +318,36 @@ public class PlayerVerticle extends AbstractVerticle {
             throw new RuntimeException(msg);
         }
         return response;
+    }
+
+    public static class PlayerStatus {
+        private ZonedDateTime time;
+        private String songFile;
+        private String state;
+
+        public ZonedDateTime getTime() {
+            return time;
+        }
+
+        public void setTime(ZonedDateTime time) {
+            this.time = time;
+        }
+
+
+        public String getSongFile() {
+            return songFile;
+        }
+
+        public void setSongFile(String songFile) {
+            this.songFile = songFile;
+        }
+
+        public String getState() {
+            return state;
+        }
+
+        public void setState(String state) {
+            this.state = state;
+        }
     }
 }

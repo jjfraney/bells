@@ -54,6 +54,11 @@ public class MqttVerticle  extends AbstractVerticle {
             Object object = deserializeFromBellTower(status, SchedulerVerticle.SchedulerStatus.class);
             publishToBroker(object);
         });
+        vertx.eventBus().consumer("bell-tower.player.status", status -> {
+            LOGGER.debug("got a player status message, {}", status.body());
+            Object object = deserializeFromBellTower(status, PlayerVerticle.PlayerStatus.class);
+            publishToBroker(object);
+        });
 
         mqttClient = new MqttClient(broker, clientId, persistence);
 
