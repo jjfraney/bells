@@ -143,30 +143,48 @@ public class PlayerVerticle extends AbstractVerticle {
     }
 
     private void publishStatus() {
-        String statusJson;
-
-        PlayerStatus status = new PlayerStatus();
 
         Status.Response statusResponse = sendCommand(new Status());
-        String state = statusResponse.getState().orElse("unknown");
-        status.setState(state);
+        if(statusResponse.isOk()) {
+            String state = statusResponse.getState().orElse("unknown");
+
+            PlayerStatus status = new PlayerStatus();
+            status.setState(state);
 
 
-        if(state.equals("play") ) {
-            String songFile = "unknown";
-            Integer songId = statusResponse.getSongId().orElse(-1);
-            if(songId > 0) {
-                QueueQueryResponse playlistIdResponse = sendCommand(new PlaylistId(songId));
-                List<QueueQueryResponse.QueuedSongMetadata> songs = playlistIdResponse.getSongMetadata();
-                if(songs.size() > 0) {
-                    songFile = songs.get(0).getFile().orElse("unknown");
+            if (state.equals("play")) {
+                String songFile = "unknown";
+                Integer songId = statusResponse.getSongId().orElse(-1);
+                if (songId > 0) {
+                    QueueQueryResponse playlistIdResponse = sendCommand(new PlaylistId(songId));
+                    if (playlistIdResponse.isOk()) {
+                        List<QueueQueryResponse.QueuedSongMetadata> songs = playlistIdResponse.getSongMetadata();
+                        if (songs.size() > 0) {
+                            songFile = songs.get(0).getFile().orElse("unknown");
+                        }
+                    } else {
+                        LOGGER.error("Failed to get playlist song ids.");
+                        publishCommandFail(playlistIdResponse);
+                    }
                 }
+                status.setSongFile(songFile);
             }
-            status.setSongFile(songFile);
+
+
+            publish(status);
+        } else {
+            LOGGER.error("Unable to get status.");
+            publishCommandFail(statusResponse);
         }
+    }
 
+    /**
+     * publish status to vertx eventbus
+     * @param status
+     */
+    private void publish(PlayerStatus status) {
+        String statusJson;
         status.setTime(ZonedDateTime.now(ZoneId.systemDefault()));
-
         try {
             statusJson = Json.mapper
                     .writer()
@@ -176,26 +194,33 @@ public class PlayerVerticle extends AbstractVerticle {
             throw new RuntimeException(e);
         }
         vertx.eventBus().publish("bell-tower.player.status", statusJson);
-
     }
+
     private void playSong(String song) {
 
-        if(isPlayerBusy()) {
-            LOGGER.info("Cannot play this song because another is already playing.  song={}", song);
-            return;
-        }
+        Status.Response statusResponse = sendCommand(STATUS);
+        if(statusResponse.isOk()) {
 
-        CommandList commandList = new CommandList(CLEAR, CROSSFADE_OFF, new Add(song), PLAY, STATUS);
+            if (isPlayerBusy(statusResponse)) {
+                LOGGER.info("Cannot play this song because another is already playing.");
+                publishStatus();
+            } else {
+                CommandList commandList = new CommandList(CLEAR, CROSSFADE_OFF, new Add(song), PLAY, STATUS);
 
-        try {
-            CommandList.Response commandListResponse = sendCommand(commandList);
-            LOGGER.trace("play commands response: {}", commandListResponse.getResponseLines());
-            int statusIndx = commandListResponse.getResponses().size() - 1;
-            Status.Response sr = (Status.Response) commandListResponse.getResponses().get(statusIndx);
-            LOGGER.debug("player status: {}, play error: {},", sr.getState().orElse("unknown"), sr.getError().orElse("no error"));
-
-        } catch (RuntimeException e) {
-            LOGGER.error("Unable to play song. song={}, message={}", song, e.getMessage());
+                CommandList.Response commandListResponse = sendCommand(commandList);
+                if (commandListResponse.isOk()) {
+                    LOGGER.trace("play commands response: {}", commandListResponse.getResponseLines());
+                    int statusIndx = commandListResponse.getResponses().size() - 1;
+                    Status.Response sr = (Status.Response) commandListResponse.getResponses().get(statusIndx);
+                    LOGGER.debug("player status: {}, play error: {},", sr.getState().orElse("unknown"), sr.getError().orElse("no error"));
+                } else {
+                    LOGGER.error("Unable to play song. song={}, message={}", song, commandListResponse.getAck().get().getMessageText());
+                    publishCommandFail(commandListResponse);
+                }
+            }
+        } else {
+            LOGGER.error("Unable to get status.");
+            publishCommandFail(statusResponse);
         }
     }
 
@@ -210,31 +235,54 @@ public class PlayerVerticle extends AbstractVerticle {
         String midSegment = song + MIDDLE + ".ogg";
         String trailSegment = song + END + ".ogg";
 
+        Status.Response statusResponse = sendCommand(STATUS);
+        if(statusResponse.isOk()) {
 
-        if(isPlayerBusy()) {
-            LOGGER.info("Cannot play this song because another is already playing.");
+            if (isPlayerBusy(statusResponse)) {
+                LOGGER.info("Cannot play this song because another is already playing.");
+                publishStatus();
+            } else {
+                Add beg = new Add(leadSegment);
+                Add mid = new Add(midSegment);
+                Add end = new Add(trailSegment);
+                PlaylistInfo info = new PlaylistInfo();
+                CommandList list = new CommandList(CLEAR, beg, mid, end, info, REPEAT_OFF, SINGLE_OFF, CROSSFADE_ON);
+
+                CommandList.Response addResponse = sendCommand(list);
+                if (addResponse.isOk()) {
+
+                    // info command is #4 in command list.
+                    QueueQueryResponse infoResponse = (QueueQueryResponse) (addResponse.getResponses().get(4));
+                    infoResponse.getSongMetadata().forEach(r -> LOGGER.debug("song data, name={}, duration={}", r.getFile(), r.getTime()));
+                    playSegmentsWithRepeats(playTime, infoResponse);
+                } else {
+                    LOGGER.error("Command to add song and configure player has failed.");
+                    publishCommandFail(addResponse);
+                }
+            }
         } else {
-            Add beg = new Add(leadSegment);
-            Add mid = new Add(midSegment);
-            Add end = new Add(trailSegment);
-            PlaylistInfo info = new PlaylistInfo();
-            CommandList list = new CommandList(CLEAR, beg, mid, end, info, REPEAT_OFF, SINGLE_OFF, CROSSFADE_ON);
+            LOGGER.error("Command to get status has failed.");
+            publishCommandFail(statusResponse);
+        }
+    }
 
-            CommandList.Response response = sendCommand(list);
+    /**
+     * start playing the trio of segments, calculate repeats and schedule the repeat timer.
+     * @param playTime
+     * @param infoResponse
+     */
+    private void playSegmentsWithRepeats(Integer playTime, QueueQueryResponse infoResponse) {
+        Integer begTime = infoResponse.getSongMetadata().get(0).getTime().orElse(0);
+        Integer midTime = infoResponse.getSongMetadata().get(1).getTime().orElse(0);
+        Integer endTime = infoResponse.getSongMetadata().get(2).getTime().orElse(0);
 
-            // info command is #4 in command list.
-            QueueQueryResponse infoResponse = (QueueQueryResponse)(response.getResponses().get(4));
-            infoResponse.getSongMetadata().forEach(r -> LOGGER.debug("song data, name={}, duration={}", r.getFile(), r.getTime()));
-            Integer begTime = infoResponse.getSongMetadata().get(0).getTime().orElse(0);
-            Integer midTime = infoResponse.getSongMetadata().get(1).getTime().orElse(0);
-            Integer endTime = infoResponse.getSongMetadata().get(2).getTime().orElse(0);
-
-            Play.Response playResponse = sendCommand(PLAY);
+        Play.Response playResponse = sendCommand(PLAY);
+        if (playResponse.isOk()) {
 
             playResponse.getConnectResponse();
 
             LOGGER.debug("begTime={}, midTime={}, endTime={}, playTime={}", begTime, midTime, endTime, playTime);
-            if(begTime + midTime + endTime < playTime) {
+            if (begTime + midTime + endTime < playTime) {
                 // repeat the middle this many times
                 Integer repeats = (playTime - begTime - endTime) / midTime;
                 Integer total = begTime + endTime + midTime * repeats;
@@ -262,6 +310,9 @@ public class PlayerVerticle extends AbstractVerticle {
             } else {
                 LOGGER.debug("no repeats");
             }
+        } else {
+            LOGGER.error("Command to play the song has failed.");
+            publishCommandFail(playResponse);
         }
     }
 
@@ -271,7 +322,11 @@ public class PlayerVerticle extends AbstractVerticle {
 
     private void startRepeat() {
         LOGGER.debug("starting repeats");
-        sendCommand(new CommandList(REPEAT_ON, SINGLE_ON));
+        Command.Response response = sendCommand(new CommandList(REPEAT_ON, SINGLE_ON));
+        if(!response.isOk()) {
+            LOGGER.error("Failed to start repeats");
+            publishCommandFail(response);
+        }
     }
 
     private void stopRepeat() {
@@ -281,13 +336,32 @@ public class PlayerVerticle extends AbstractVerticle {
             timerIdRepeatOn = 0;
             vertx.cancelTimer(timerIdRepeatOff);
             timerIdRepeatOff = 0;
-            sendCommand(new CommandList(REPEAT_OFF, SINGLE_OFF));
+            Command.Response response = sendCommand(new CommandList(REPEAT_OFF, SINGLE_OFF));
+            if(!response.isOk()) {
+                LOGGER.error("Failed to stop repeats.");
+                publishCommandFail(response);
+            }
         }
     }
 
-    private boolean isPlayerBusy() {
-        Status.Response statusResponse = sendCommand(new Status());
-        String state = statusResponse.getState().orElseThrow(() ->  new RuntimeException("state is not available"));
+    private <R extends Command.Response> void publishCommandFail(R response) {
+        Command.Response.Ack ack = response.getAck().orElseThrow(() -> new RuntimeException("Don't call this if you don't have an ack."));
+
+        String msg = new StringBuilder()
+                .append("command fail. ")
+                .append("command=").append(ack.getCurrentCommand())
+                .append(", ")
+                .append("error=").append(ack.getError())
+                .append(",")
+                .append("message=").append(ack.getMessageText())
+                .toString();
+        PlayerStatus status = new PlayerStatus();
+        status.setState("fail: " + msg.toString());
+        publish(status);
+    }
+
+    private boolean isPlayerBusy(Status.Response statusResponse) {
+        String state = statusResponse.getState().orElseThrow(() -> new RuntimeException("state is not available"));
         return "play".equals(state);
     }
 
@@ -302,20 +376,6 @@ public class PlayerVerticle extends AbstractVerticle {
             String cmdName = command.getClass().getSimpleName();
             Command.Response.Ack ack = response.getAck().orElseThrow(() -> new RuntimeException(cmdName + " fail, no ack"));
             LOGGER.error("The {} command failed: {}", cmdName, ack.getMessageText());
-
-            String commandText = command.text();
-            if(command instanceof CommandList) {
-                commandText = ack.getCurrentCommand();
-            }
-            String msg = new StringBuilder()
-                    .append("command fail. ")
-                    .append("command=").append(commandText)
-                    .append(", ")
-                    .append("error=").append(ack.getError())
-                    .append(",")
-                    .append("message=").append(ack.getMessageText())
-                    .toString();
-            throw new RuntimeException(msg);
         }
         return response;
     }
