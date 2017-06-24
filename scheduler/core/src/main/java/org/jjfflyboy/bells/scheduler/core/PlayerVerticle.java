@@ -14,7 +14,6 @@ import musicpd.protocol.Clear;
 import musicpd.protocol.CommandList;
 import musicpd.protocol.Crossfade;
 import musicpd.protocol.Play;
-import musicpd.protocol.PlaylistId;
 import musicpd.protocol.PlaylistInfo;
 import musicpd.protocol.Repeat;
 import musicpd.protocol.Single;
@@ -25,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.List;
 
 /**
  * Plays bells songs as per received event from vertx event bus.
@@ -141,41 +139,44 @@ public class PlayerVerticle extends AbstractVerticle {
         });
 
     }
+    private void publishBusyPlayer(Status.Response statusResponse) {
+    }
 
     private void publishStatus() {
 
-        Status.Response statusResponse = sendCommand(new Status());
-        if(statusResponse.isOk()) {
-            String state = statusResponse.getState().orElse("unknown");
+        CommandList commandList = new CommandList(STATUS, new PlaylistInfo());
+        CommandList.Response response = sendCommand(commandList);
 
-            PlayerStatus status = new PlayerStatus();
-            status.setState(state);
+        String state = "unknown";
+        String songFile = null;
 
+        if(response.isOk()) {
+            Status.Response status = (Status.Response) response.getResponses().get(0);
+            PlaylistInfo.Response playlistInfo = (PlaylistInfo.Response) response.getResponses().get(1);
+
+            state = status.getState().orElse("unknown");
+            Integer songId = status.getSongId().orElse(-1);
 
             if (state.equals("play")) {
-                String songFile = "unknown";
-                Integer songId = statusResponse.getSongId().orElse(-1);
-                if (songId > 0) {
-                    QueueQueryResponse playlistIdResponse = sendCommand(new PlaylistId(songId));
-                    if (playlistIdResponse.isOk()) {
-                        List<QueueQueryResponse.QueuedSongMetadata> songs = playlistIdResponse.getSongMetadata();
-                        if (songs.size() > 0) {
-                            songFile = songs.get(0).getFile().orElse("unknown");
-                        }
-                    } else {
-                        LOGGER.error("Failed to get playlist song ids.");
-                        publishCommandFail(playlistIdResponse);
-                    }
+                if (songId >= 0) {
+                    songFile = playlistInfo.getSongMetadata().stream()
+                            .filter((s) -> s.getId().orElse(-1).equals(songId))
+                            .findFirst()
+                            .orElseThrow(RuntimeException::new)
+                            .getFile()
+                            .orElse("unknown");
                 }
-                status.setSongFile(songFile);
             }
 
-
-            publish(status);
         } else {
             LOGGER.error("Unable to get status.");
-            publishCommandFail(statusResponse);
         }
+
+        PlayerStatus status = new PlayerStatus();
+        status.setMpcState(state);
+        status.setSongFile(songFile);
+        publish(status);
+
     }
 
     /**
@@ -203,7 +204,7 @@ public class PlayerVerticle extends AbstractVerticle {
 
             if (isPlayerBusy(statusResponse)) {
                 LOGGER.info("Cannot play this song because another is already playing.");
-                publishStatus();
+                publishBusyPlayer(statusResponse);
             } else {
                 CommandList commandList = new CommandList(CLEAR, CROSSFADE_OFF, new Add(song), PLAY, STATUS);
 
@@ -215,12 +216,12 @@ public class PlayerVerticle extends AbstractVerticle {
                     LOGGER.debug("player status: {}, play error: {},", sr.getState().orElse("unknown"), sr.getError().orElse("no error"));
                 } else {
                     LOGGER.error("Unable to play song. song={}, message={}", song, commandListResponse.getAck().get().getMessageText());
-                    publishCommandFail(commandListResponse);
+                    publishMpcCommandFail(commandListResponse);
                 }
             }
         } else {
             LOGGER.error("Unable to get status.");
-            publishCommandFail(statusResponse);
+            publishMpcCommandFail(statusResponse);
         }
     }
 
@@ -240,7 +241,7 @@ public class PlayerVerticle extends AbstractVerticle {
 
             if (isPlayerBusy(statusResponse)) {
                 LOGGER.info("Cannot play this song because another is already playing.");
-                publishStatus();
+                publishBusyPlayer(statusResponse);
             } else {
                 Add beg = new Add(leadSegment);
                 Add mid = new Add(midSegment);
@@ -257,14 +258,15 @@ public class PlayerVerticle extends AbstractVerticle {
                     playSegmentsWithRepeats(playTime, infoResponse);
                 } else {
                     LOGGER.error("Command to add song and configure player has failed.");
-                    publishCommandFail(addResponse);
+                    publishMpcCommandFail(addResponse);
                 }
             }
         } else {
             LOGGER.error("Command to get status has failed.");
-            publishCommandFail(statusResponse);
+            publishMpcCommandFail(statusResponse);
         }
     }
+
 
     /**
      * start playing the trio of segments, calculate repeats and schedule the repeat timer.
@@ -312,7 +314,7 @@ public class PlayerVerticle extends AbstractVerticle {
             }
         } else {
             LOGGER.error("Command to play the song has failed.");
-            publishCommandFail(playResponse);
+            publishMpcCommandFail(playResponse);
         }
     }
 
@@ -325,7 +327,7 @@ public class PlayerVerticle extends AbstractVerticle {
         Command.Response response = sendCommand(new CommandList(REPEAT_ON, SINGLE_ON));
         if(!response.isOk()) {
             LOGGER.error("Failed to start repeats");
-            publishCommandFail(response);
+            publishMpcCommandFail(response);
         }
     }
 
@@ -339,12 +341,12 @@ public class PlayerVerticle extends AbstractVerticle {
             Command.Response response = sendCommand(new CommandList(REPEAT_OFF, SINGLE_OFF));
             if(!response.isOk()) {
                 LOGGER.error("Failed to stop repeats.");
-                publishCommandFail(response);
+                publishMpcCommandFail(response);
             }
         }
     }
 
-    private <R extends Command.Response> void publishCommandFail(R response) {
+    private <R extends Command.Response> void publishMpcCommandFail(R response) {
         Command.Response.Ack ack = response.getAck().orElseThrow(() -> new RuntimeException("Don't call this if you don't have an ack."));
 
         String msg = new StringBuilder()
@@ -356,7 +358,7 @@ public class PlayerVerticle extends AbstractVerticle {
                 .append("message=").append(ack.getMessageText())
                 .toString();
         PlayerStatus status = new PlayerStatus();
-        status.setState("fail: " + msg.toString());
+        status.setMpcError(msg.toString());
         publish(status);
     }
 
@@ -376,6 +378,7 @@ public class PlayerVerticle extends AbstractVerticle {
             String cmdName = command.getClass().getSimpleName();
             Command.Response.Ack ack = response.getAck().orElseThrow(() -> new RuntimeException(cmdName + " fail, no ack"));
             LOGGER.error("The {} command failed: {}", cmdName, ack.getMessageText());
+            publishMpcCommandFail(response);
         }
         return response;
     }
@@ -383,7 +386,8 @@ public class PlayerVerticle extends AbstractVerticle {
     public static class PlayerStatus {
         private ZonedDateTime time;
         private String songFile;
-        private String state;
+        private String mpcState;
+        private String mpcError;
 
         public ZonedDateTime getTime() {
             return time;
@@ -402,12 +406,20 @@ public class PlayerVerticle extends AbstractVerticle {
             this.songFile = songFile;
         }
 
-        public String getState() {
-            return state;
+        public String getMpcState() {
+            return mpcState;
         }
 
-        public void setState(String state) {
-            this.state = state;
+        public void setMpcState(String mpcState) {
+            this.mpcState = mpcState;
+        }
+
+        public String getMpcError() {
+            return mpcError;
+        }
+
+        public void setMpcError(String mpcError) {
+            this.mpcError = mpcError;
         }
     }
 }

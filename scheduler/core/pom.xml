@@ -32,7 +32,7 @@
         <dependency>
             <groupId>com.github.jjfraney</groupId>
             <artifactId>mpc4j</artifactId>
-            <version>1.0.0.Beta01-SNAPSHOT</version>
+            <version>1.0.0</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
