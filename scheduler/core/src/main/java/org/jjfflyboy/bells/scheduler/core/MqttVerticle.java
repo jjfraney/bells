@@ -145,6 +145,14 @@ public class MqttVerticle  extends AbstractVerticle {
             }
         });
 
+        mqttConnect(username, password);
+
+        if(! startFuture.isComplete()) {
+            startFuture.complete();
+        }
+    }
+
+    private void mqttConnect(String username, String password) {
         try {
             LOGGER.debug("Connecting to broker, uri={}", mqttClient.getServerURI());
             MqttConnectOptions options = new MqttConnectOptions();
@@ -158,12 +166,12 @@ public class MqttVerticle  extends AbstractVerticle {
             }
             mqttClient.connect(options);
         } catch(MqttException e) {
-            LOGGER.error("cannot subscribe.", e);
-            startFuture.fail(e);
-        }
-
-        if(! startFuture.isComplete()) {
-            startFuture.complete();
+            Integer retryTimeout = 300;
+            vertx.setTimer(retryTimeout * 1000, (l) -> {
+                mqttConnect(username, password);
+            });
+            LOGGER.error("cannot connect, error={}, cause exception={}, cause message={}, retry timeout={}",
+                    e.getMessage(), e.getCause().getClass().getName(), e.getCause().getMessage(), retryTimeout);
         }
     }
 
@@ -195,7 +203,11 @@ public class MqttVerticle  extends AbstractVerticle {
         }
         MqttMessage message = new MqttMessage(json.getBytes());
         try {
-            mqttClient.publish(topic, message);
+            if(mqttClient.isConnected()) {
+                mqttClient.publish(topic, message);
+            } else {
+                LOGGER.error("cannot publish to mqtt broker, client is not connected.");
+            }
         } catch (MqttException e) {
             LOGGER.error("mqtt client fail.", e);
         }
