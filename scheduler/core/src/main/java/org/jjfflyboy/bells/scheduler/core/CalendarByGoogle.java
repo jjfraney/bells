@@ -159,7 +159,8 @@ public class CalendarByGoogle implements Calendar {
                     .execute();
             items = events.getItems();
         } catch(IOException e) {
-            throw new RuntimeException(e);
+            LOGGER.error("IO Error when connecting to Google. exception={}, message={}", e.getClass().getName(), e.getMessage());
+            // drop through to return empty list of songs.
         }
         items.stream().forEach(i -> LOGGER.debug("event:  id={}, summary={}, start={}",
                 i.getId(), i.getSummary(), i.getStart().getDateTime())
