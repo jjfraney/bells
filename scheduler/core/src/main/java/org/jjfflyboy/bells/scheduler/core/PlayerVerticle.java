@@ -91,6 +91,11 @@ public class PlayerVerticle extends AbstractVerticle {
     private final Crossfade CROSSFADE_ON = new Crossfade(1);
     private final Crossfade CROSSFADE_OFF = new Crossfade(0);
 
+    enum LockStatus {
+        LOCKED, UNLOCKED;
+    }
+    private LockStatus lockStatus = LockStatus.LOCKED;
+
     private MPC mpc;
 
     // id of timer which fires to turn off repeat
@@ -127,6 +132,12 @@ public class PlayerVerticle extends AbstractVerticle {
                     playSong(c[1]);
                 }
             }
+            if(command.startsWith("lock")) {
+                lockPlayer();
+            }
+            if(command.startsWith("unlock")) {
+                unlockPlayer();
+            }
         });
 
         vertx.eventBus().consumer("bell-tower", message -> {
@@ -139,6 +150,15 @@ public class PlayerVerticle extends AbstractVerticle {
         });
 
     }
+
+    private void lockPlayer() {
+        lockStatus = LockStatus.LOCKED;
+    }
+
+    private void unlockPlayer() {
+        lockStatus = LockStatus.UNLOCKED;
+    }
+
     private void publishBusyPlayer(Status.Response statusResponse) {
     }
 
@@ -186,6 +206,7 @@ public class PlayerVerticle extends AbstractVerticle {
     private void publish(PlayerStatus status) {
         String statusJson;
         status.setTime(ZonedDateTime.now(ZoneId.systemDefault()));
+        status.setLockStatus(lockStatus);
         try {
             statusJson = Json.mapper
                     .writer()
@@ -198,6 +219,10 @@ public class PlayerVerticle extends AbstractVerticle {
     }
 
     private void playSong(String song) {
+        if(lockStatus == LockStatus.LOCKED) {
+            LOGGER.info("Player is locked, cannot play song");
+            return;
+        }
 
         Status.Response statusResponse = sendCommand(STATUS);
         if(statusResponse.isOk()) {
@@ -226,6 +251,11 @@ public class PlayerVerticle extends AbstractVerticle {
     }
 
     private void playSegmented(String song, Integer playTime) {
+        if(lockStatus == LockStatus.LOCKED) {
+            LOGGER.info("Player is locked, cannot play segmented");
+            return;
+        }
+
         LOGGER.info("Playing, {}", song);
         final String BEGINNING = "-beginning";
         final String MIDDLE = "-middle";
@@ -388,6 +418,7 @@ public class PlayerVerticle extends AbstractVerticle {
         private String songFile;
         private String mpcState;
         private String mpcError;
+        private LockStatus lockStatus;
 
         public ZonedDateTime getTime() {
             return time;
@@ -420,6 +451,14 @@ public class PlayerVerticle extends AbstractVerticle {
 
         public void setMpcError(String mpcError) {
             this.mpcError = mpcError;
+        }
+
+        public LockStatus getLockStatus() {
+            return lockStatus;
+        }
+
+        public void setLockStatus(LockStatus lockStatus) {
+            this.lockStatus = lockStatus;
         }
     }
 }
