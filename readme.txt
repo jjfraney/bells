@@ -38,6 +38,8 @@ fsck:
    set linux fsckfix by default to yes.  edit /lib/init/vars.sh
 
 system configuration
+
+# currently using mpd in a docker container.  Don't bother installing
 install, disable mdp systemctl as a system process with root priv
 	apt-get install mpd mpc
 	service mpd stop
@@ -50,8 +52,18 @@ install, disable mdp systemctl as a system process with root priv
 	set: bind_to_address         "0.0.0.0"
         	removing/commenting the other.
 
+enable mpd as user level system process (started at boot by systemd)
+	current debian on beagleboard as init.d for mpd, upgrade?
+	changed /etc/default/mpd to point to /home/bells/.mpd/mdp.conf
+
+	mpd can be started manually (it is not already running):
+		login as user bells
+		mpd -v .mpd/mpd.conf
+
+
 add user 'bells'
 	# create home directory, user name: 'bells'
+	# the userid of 'bells' on host, must be same as userid in docker containers.
 	useradd -m bells
 	# add user 'bells' to 'audio' group
 	usermod -a -G audio bells
@@ -63,12 +75,16 @@ eth0 networking:
 		allow-hotplug eth0
 		iface eth0 inet dhcp
 
+# currently using usb audio.
+# hdmi controller quit after 10 minutes (every time) for unknown reason
+# don't bother to enable hdmi audio
 hdmi: enable audio
 	http://www.raspberry-pi-geek.com/Archive/2013/02/HDMI-and-the-BeagleBone-Black-Multimedia-Environment/(offset)/2
 	modify eEnv.txt
 		kms_force_mode=video=HDMI-A-1:720x480@60e
 
 
+# NOTE: systemd provides timedate service.  Don't use ntp in this case.
 set system time
 	resource: http://derekmolloy.ie/automatically-setting-the-beaglebone-black-time-using-ntp/
 
@@ -107,19 +123,12 @@ Cron should not run jobs if we KNOW the time is wrong....or not right.
 
 	on netwok fail
 
-enable mpd as user level system process (started at boot by systemd)
-	current debian on beagleboard as init.d for mpd, upgrade?
-	changed /etc/default/mpd to point to /home/bells/.mpd/mdp.conf
-
-	mpd can be started manually (it is not already running):
-		login as user bells
-		mpd -v .mpd/mpd.conf
-
 
 
 networking.
  to route ip from beagleboard: define route on beagle board:
 	ip route add default via 192.168.7.1
+ add nameserver to bbb's /etc/resolv.conf (unless its using tool: resolvconf)
 
  to route ip from beagleboard: allow traffic through linux host:
 	echo 1 | sudo tee /proc/sys/net/ipv4/ip_forward
@@ -143,6 +152,7 @@ setting a new beaglebone black for docker
 
 -- installed docker.
 --- space for images
+---- using debian distribution without x11, otherwise
 ---- there is not enough room on bbb for all these binaries
 ---- investigate: use smaller bootable images
 ---- for now, using a microsd card for extra storage
@@ -177,6 +187,8 @@ setting a new beaglebone black for docker
       docker -H tcp://192.168.1.133:2375 create --name jdk8 jdk-arm:1.8.0_111
 
 --- a normal user, named 'bells', is the owner of the processes
+  -- the 'bells' uid must match the uid of the mpd user in the mpd container
+  -- passwd: 0fStVer0nica
   -- in user bells home directory:
     -- Bells - is the music directory in use by mpd
     -- data - is mpd's data directory
@@ -203,6 +215,10 @@ setting a new beaglebone black for docker
 
 -- mpd in docker on beaglebone black
   -- test audio on the black with speaker-test (alsa tools package is required), discover the devices and add them to the mpd.conf
+	  --- discover devices with aplay -L
+		# for the SB Go usb dongle:
+		speaker-test -Dplughw:Go -t wav -c 2
+  -- run docker build for mpd with direct access to internet.
   -- the /dev/snd device must be mapped
   -- disable user names with --userns host
     -- the user id of the mpd process should match the host userid of the account
