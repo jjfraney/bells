@@ -46,7 +46,6 @@ public class MainVerticle extends AbstractVerticle {
         DeploymentOptions options = new DeploymentOptions().setConfig(jsonOptions);
 
         DeploymentOptions asWorker = new DeploymentOptions().setWorker(true);
-        vertx.deployVerticle(GoogleCalendarVerticle.class.getName(), asWorker);
         vertx.deployVerticle(MqttVerticle.class.getName(), asWorker);
 
         vertx.deployVerticle(SchedulerVerticle.class.getName());

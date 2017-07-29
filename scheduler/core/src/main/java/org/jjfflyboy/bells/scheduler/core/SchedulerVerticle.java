@@ -1,17 +1,12 @@
 package org.jjfflyboy.bells.scheduler.core;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectReader;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.AsyncResult;
-import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -24,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author jfraney
@@ -33,20 +29,67 @@ public class SchedulerVerticle extends AbstractVerticle {
     private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerVerticle.class);
     private Map<SongEvent, Long> scheduledWithTimerId = new HashMap<>();
 
-    private void schedule(AsyncResult<Message<String>> r) {
-        List<SongEvent> events;
-        try {
-            Objects.nonNull(r);
-            Objects.nonNull(r.result());
-            Objects.nonNull(r.result().body());
-            String bdy = r.result().body();
-            ObjectReader reader = Json.mapper.readerFor(new TypeReference<List<SongEvent>>() {
-            });
-            events = reader.readValue(bdy);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        Set<SongEvent> toBeScheduled = new HashSet<>(events);
+    @Override
+    public void start() throws Exception {
+
+
+        refreshSongSchedule();
+
+        vertx.eventBus().consumer("bell-tower", message -> {
+            LOGGER.debug("received command, msg={}", message.body());
+            JsonObject msg = (JsonObject) message.body();
+            String command = msg.getString("command");
+            if ("status".equals(command)) {
+                publishStatus();
+            }
+        });
+    }
+
+    private void refreshSongSchedule() {
+        final Settings settings = new PropertySettings();
+
+        vertx.<List<Calendar.Event>> executeBlocking(future -> {
+            LOGGER.info("attempting to populate song schedule");
+            try {
+                Duration lookAhead = settings.getCalendarQueryLookAhead();
+                Calendar calendar = new CalendarByGoogle(lookAhead);
+                List<Calendar.Event> events = calendar.getEvents();
+                future.complete(events);
+            } catch(RuntimeException e) {
+                future.fail(e.getCause());
+            }
+        }, res -> {
+            if(res.succeeded()) {
+                List<Calendar.Event> events = res.result();
+                events.forEach(e -> LOGGER.debug("event={}, time={}", e.getTitle(), e.getTime().toLocalDateTime()));
+                LOGGER.debug("calendar received.  event count={}", events.size());
+
+                List<SongEvent> songEvents = events.stream()
+                        .map(SongEvent::new)
+                        .filter(e -> e.getTime().toLocalDateTime().isAfter(LocalDateTime.now()))
+                        .collect(Collectors.toList());
+
+
+                schedule(songEvents);
+
+                // after success, set timer for next refresh
+                Duration period = settings.getCalendarQueryPeriod();
+                LOGGER.info("calendar period {}s, encoded={}", period.getSeconds(), period);
+
+                vertx.setTimer(period.getSeconds() * 1000, id -> refreshSongSchedule());
+
+            } else {
+                int retrySeconds = 300;
+                LOGGER.error("cannot get schedule, retrying in {}s", retrySeconds);
+
+                // failure retry
+                vertx.setTimer(retrySeconds*1000, id -> refreshSongSchedule());
+            }
+        });
+    }
+
+    private void schedule(List<SongEvent> songEvents) {
+        Set<SongEvent> toBeScheduled = new HashSet<>(songEvents);
         Set<SongEvent> toBeCancelled = new HashSet<>(scheduledWithTimerId.keySet());
 
         // only the ones to be canceled remain
@@ -103,30 +146,6 @@ public class SchedulerVerticle extends AbstractVerticle {
     }
 
 
-    @Override
-    public void start() throws Exception {
-
-        sendScheduleRequest();
-
-        Settings settings = new PropertySettings();
-        Duration period = settings.getCalendarQueryPeriod();
-        LOGGER.info("calendar period {}s, encoded={}", period.getSeconds(), period);
-        vertx.setPeriodic(period.getSeconds() * 1000, id -> sendScheduleRequest());
-
-        vertx.eventBus().consumer("bell-tower", message -> {
-            LOGGER.debug("received command, msg={}", message.body());
-            JsonObject msg = (JsonObject) message.body();
-            String command = msg.getString("command");
-            if ("status".equals(command)) {
-                publishStatus();
-            }
-        });
-    }
-
-    private void sendScheduleRequest() {
-        vertx.eventBus().send("bell-tower.scheduler", "get schedule", this::schedule);
-    }
-
     /**
      * These describe the events in the calendar, each event tells when a song should be played.
      * The natural order of song events is the natural order of their scheduled time.
@@ -134,6 +153,12 @@ public class SchedulerVerticle extends AbstractVerticle {
     public static class SongEvent implements Calendar.Event, Comparable<SongEvent> {
         private ZonedDateTime time;
         private String title;
+
+        private SongEvent() {}
+        private SongEvent(Calendar.Event event) {
+            this.setTitle(event.getTitle());
+            this.setTime(event.getTime().minus(isMass() ? Duration.ofMinutes(2) : Duration.ofMillis(0)));
+        }
 
         @Override
         public ZonedDateTime getTime() {
@@ -175,6 +200,11 @@ public class SchedulerVerticle extends AbstractVerticle {
         @Override
         public int compareTo(SongEvent songEvent) {
             return this.getTime().compareTo(songEvent.getTime());
+        }
+
+
+        private boolean isMass() {
+            return getTitle().toLowerCase().startsWith("mass");
         }
     }
 
