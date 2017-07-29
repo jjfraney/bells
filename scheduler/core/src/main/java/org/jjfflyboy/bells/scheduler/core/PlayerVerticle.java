@@ -187,15 +187,17 @@ public class PlayerVerticle extends AbstractVerticle {
                             .orElse("unknown");
                 }
             }
+            PlayerStatus playerStatus = new PlayerStatus();
+            playerStatus.setMpcState(state);
+            playerStatus.setSongFile(songFile);
+            publish(playerStatus);
+
 
         } else {
             LOGGER.error("Unable to get status.");
+            publishMpcCommandFail(response);
         }
 
-        PlayerStatus status = new PlayerStatus();
-        status.setMpcState(state);
-        status.setSongFile(songFile);
-        publish(status);
 
     }
 
@@ -408,7 +410,6 @@ public class PlayerVerticle extends AbstractVerticle {
             String cmdName = command.getClass().getSimpleName();
             Command.Response.Ack ack = response.getAck().orElseThrow(() -> new RuntimeException(cmdName + " fail, no ack"));
             LOGGER.error("The {} command failed: {}", cmdName, ack.getMessageText());
-            publishMpcCommandFail(response);
         }
         return response;
     }
