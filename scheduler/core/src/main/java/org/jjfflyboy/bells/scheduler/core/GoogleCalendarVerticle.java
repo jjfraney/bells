@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,12 +32,12 @@ public class GoogleCalendarVerticle extends AbstractVerticle {
         Calendar calendar = new CalendarByGoogle(lookAhead);
         LOGGER.debug("getting calendar");
         List<Calendar.Event> events = calendar.getEvents();
-        events.forEach(e -> LOGGER.debug("event={}, time={}", e.getTitle(), e.getTime().toLocalDateTime()));
+        events.forEach(e -> LOGGER.debug("event={}, time={}", e.getTitle(), e.getTime()));
         LOGGER.debug("calendar received.  event count={}", events.size());
 
         List<SongEvent> songEvents = events.stream()
                 .map(SongEvent::new)
-                .filter(e -> e.getTime().toLocalDateTime().isAfter(LocalDateTime.now()))
+                .filter(e -> e.getTime().isAfter(ZonedDateTime.now()))
                 .collect(Collectors.toList());
 
         String json;
@@ -93,7 +92,8 @@ public class GoogleCalendarVerticle extends AbstractVerticle {
     }
 
     private boolean isMass() {
-      return event.getTitle().toLowerCase().startsWith("mass");
+      LOGGER.debug("trimed={}, lowercased={}", event.getTitle().trim(), event.getTitle().trim().toLowerCase());
+      return event.getTitle().trim().toLowerCase().startsWith("mass");
     }
 
   }
