@@ -21,6 +21,8 @@ public class PropertySettings implements Settings {
             if(in != null) {
                 properties.load(in);
             }
+            LOGGER.warn("unable to load resource to properties: resource not found.");
+
         } catch(IOException e) {
             LOGGER.warn("unable to load resource to properties: {}", e.getMessage());
         }
