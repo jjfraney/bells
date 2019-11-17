@@ -113,6 +113,11 @@ public class MqttVerticle  extends AbstractVerticle {
                     JsonObject msg = new JsonObject()
                             .put("command", "status");
                     vertx.eventBus().publish("bell-tower", msg);
+                } else if(cmd.startsWith("schedule")) {
+                    JsonObject msg = new JsonObject().put("command", "schedule");
+                    vertx.eventBus().publish("bell-tower", msg);
+                } else {
+                    LOGGER.error("unknown command={}", cmd);
                 }
             }
 

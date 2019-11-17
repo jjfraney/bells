@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -33,7 +32,7 @@ public class SchedulerVerticle extends AbstractVerticle {
     public void start() throws Exception {
 
 
-        refreshSongSchedule();
+        refreshSongSchedule(true);
 
         vertx.eventBus().consumer("bell-tower", message -> {
             LOGGER.debug("received command, msg={}", message.body());
@@ -41,11 +40,13 @@ public class SchedulerVerticle extends AbstractVerticle {
             String command = msg.getString("command");
             if ("status".equals(command)) {
                 publishStatus();
+            } else if("schedule".equals(command)) {
+                refreshSongSchedule(false);
             }
         });
     }
 
-    private void refreshSongSchedule() {
+    private void refreshSongSchedule(boolean isReschedule) {
         final Settings settings = new PropertySettings();
 
         vertx.<List<Calendar.Event>> executeBlocking(future -> {
@@ -61,29 +62,34 @@ public class SchedulerVerticle extends AbstractVerticle {
         }, res -> {
             if(res.succeeded()) {
                 List<Calendar.Event> events = res.result();
-                events.forEach(e -> LOGGER.debug("event={}, time={}", e.getTitle(), e.getTime().toLocalDateTime()));
+                events.forEach(e -> LOGGER.debug("event={}, time={}", e.getTitle(), e.getTime()));
                 LOGGER.debug("calendar received.  event count={}", events.size());
 
                 List<SongEvent> songEvents = events.stream()
                         .map(SongEvent::new)
-                        .filter(e -> e.getTime().toLocalDateTime().isAfter(LocalDateTime.now()))
+                        .filter(e -> e.getTime().isAfter(ZonedDateTime.now()))
                         .collect(Collectors.toList());
 
 
                 schedule(songEvents);
 
-                // after success, set timer for next refresh
-                Duration period = settings.getCalendarQueryPeriod();
-                LOGGER.info("calendar period {}s, encoded={}", period.getSeconds(), period);
+                if(isReschedule) {
+                    // after success, set timer for next refresh
+                    Duration period = settings.getCalendarQueryPeriod();
+                    LOGGER.info("calendar period {}s, encoded={}", period.getSeconds(), period);
 
-                vertx.setTimer(period.getSeconds() * 1000, id -> refreshSongSchedule());
+                    vertx.setTimer(period.getSeconds() * 1000, id -> refreshSongSchedule(true));
+                }
 
             } else {
-                int retrySeconds = 300;
-                LOGGER.error("cannot get schedule, retrying in {}s", retrySeconds);
+                int retrySeconds = 20;
+                Throwable cause = res.cause();
+                LOGGER.error("cannot get schedule ({}), retrying in {}s", cause.getMessage(), retrySeconds);
 
-                // failure retry
-                vertx.setTimer(retrySeconds*1000, id -> refreshSongSchedule());
+                if(isReschedule) {
+                    // failure retry
+                    vertx.setTimer(retrySeconds * 1000, id -> refreshSongSchedule(true));
+                }
             }
         });
     }
@@ -109,7 +115,7 @@ public class SchedulerVerticle extends AbstractVerticle {
 
         // now schedule some.
         toBeScheduled.forEach(songEvent -> {
-            Duration duration = Duration.between(LocalDateTime.now(), songEvent.getTime());
+            Duration duration = Duration.between(ZonedDateTime.now(), songEvent.getTime());
             Long delay = duration.toMillis();
             LOGGER.debug("setting timer for event.  event={}, delay={}, as duration={}", songEvent, delay, duration);
             Long timerId = vertx.setTimer(delay, id -> {
@@ -156,8 +162,9 @@ public class SchedulerVerticle extends AbstractVerticle {
 
         private SongEvent() {}
         private SongEvent(Calendar.Event event) {
-            this.setTitle(event.getTitle());
-            this.setTime(event.getTime().minus(isMass() ? Duration.ofMinutes(2) : Duration.ofMillis(0)));
+            boolean isMass = isMass(event.getTitle());
+            this.setTitle(isMass ? "call-to-mass.ogg" : event.getTitle());
+            this.setTime(event.getTime().minus(isMass? Duration.ofMinutes(2) : Duration.ofMillis(0)));
         }
 
         @Override
@@ -203,8 +210,8 @@ public class SchedulerVerticle extends AbstractVerticle {
         }
 
 
-        private boolean isMass() {
-            return getTitle().toLowerCase().startsWith("mass");
+        private boolean isMass(String title) {
+            return title.toLowerCase().startsWith("mass");
         }
     }
 
