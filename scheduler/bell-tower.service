@@ -1,0 +1,14 @@
+[Unit]
+Description=Service to schedule bells
+After=network.target
+StartLimitIntervalSec=0
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=bells
+WorkingDirectory=/home/bells
+ExecStart=/usr/bin/java -cp bell-tower:core.jar org.jjfflyboy.bells.scheduler.core.MainVerticle
+
+[Install]
+WantedBy=multi-user.target
