@@ -12,24 +12,24 @@
     <artifactId>core</artifactId>
     <properties>
         <dockerHost>192.168.1.133</dockerHost>
-	<!-- use same uid for bells and mpd user -->
-	<bells.uid>1001</bells.uid>
+        <!-- use same uid for bells and mpd user -->
+        <bells.uid>1001</bells.uid>
     </properties>
     <dependencies>
         <dependency>
             <groupId>com.google.api-client</groupId>
             <artifactId>google-api-client</artifactId>
-            <version>1.22.0</version>
+            <version>1.30.5</version>
         </dependency>
         <dependency>
             <groupId>com.google.oauth-client</groupId>
             <artifactId>google-oauth-client-jetty</artifactId>
-            <version>1.22.0</version>
+            <version>1.30.4</version>
         </dependency>
         <dependency>
             <groupId>com.google.apis</groupId>
             <artifactId>google-api-services-calendar</artifactId>
-            <version>v3-rev213-1.22.0</version>
+            <version>v3-rev400-1.25.0</version>
         </dependency>
         <dependency>
             <groupId>com.github.jjfraney</groupId>
@@ -39,12 +39,12 @@
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-core</artifactId>
-            <version>3.4.0</version>
+            <version>3.8.3</version>
         </dependency>
         <dependency>
             <groupId>io.vertx</groupId>
             <artifactId>vertx-web</artifactId>
-            <version>3.4.0</version>
+            <version>3.8.3</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
@@ -75,7 +75,29 @@
                     </archive>
                 </configuration>
             </plugin>
-
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                    <archive>
+                        <manifest>
+                            <mainClass>org.jjfflyboy.bells.scheduler.core.MainVerticle</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id> <!-- this is used for inheritance merges -->
+                        <phase>package</phase> <!-- bind to the packaging phase -->
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
@@ -90,10 +112,14 @@
                                 <!-- dockerFileDir>core</dockerFileDir -->
                                 <from>armv7/armhf-debian:8</from>
                                 <runCmds>
-                                    <runCmd>adduser --uid ${bells.uid} --shell /usr/sbin/nologin --no-create-home bells</runCmd>
+                                    <runCmd>adduser --uid ${bells.uid} --shell /usr/sbin/nologin --no-create-home
+                                        bells
+                                    </runCmd>
                                 </runCmds>
                                 <user>bells</user>
-                                <entryPoint>/jdk/bin/java -Dvertx.disableFileCPResolving=true -jar /${project.artifactId}/${project.build.finalName}.jar</entryPoint>
+                                <entryPoint>/jdk/bin/java -Dvertx.disableFileCPResolving=true -jar
+                                    /${project.artifactId}/${project.build.finalName}.jar
+                                </entryPoint>
                                 <assembly>
                                     <targetDir>/${project.artifactId}</targetDir>
                                     <descriptorRef>artifact-with-dependencies</descriptorRef>
