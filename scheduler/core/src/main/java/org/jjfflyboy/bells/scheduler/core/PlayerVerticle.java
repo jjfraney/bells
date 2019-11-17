@@ -94,7 +94,7 @@ public class PlayerVerticle extends AbstractVerticle {
     enum LockStatus {
         LOCKED, UNLOCKED;
     }
-    private LockStatus lockStatus = LockStatus.LOCKED;
+    private LockStatus lockStatus = LockStatus.UNLOCKED;
 
     private MPC mpc;
 
