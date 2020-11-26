@@ -17,7 +17,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -94,43 +96,64 @@ public class SchedulerVerticle extends AbstractVerticle {
         });
     }
 
+    /**
+     * synchronize the vertx scheduler with the song schedule.
+     * Retains timer for unchanged events.  Cancels timer for events which do not appear
+     * on new schedule.  Sets timer for events which are new to the schedule.
+     * @param songEvents
+     */
     private void schedule(List<SongEvent> songEvents) {
-        Set<SongEvent> toBeScheduled = new HashSet<>(songEvents);
+        Set<SongEvent> newSchedule = new HashSet<>(songEvents);
+
+        // the existing scheduled events which do not appear on new schedule are to be canceled
         Set<SongEvent> toBeCancelled = new HashSet<>(scheduledWithTimerId.keySet());
+        toBeCancelled.removeAll(newSchedule);
 
-        // only the ones to be canceled remain
-        toBeCancelled.removeAll(toBeScheduled);
+        // do not set another timer for events which already have active timer
+        newSchedule.removeAll(scheduledWithTimerId.keySet());
 
-        // only the ones that are not already scheduled will remain.
-        toBeScheduled.removeAll(scheduledWithTimerId.keySet());
+        // do work of canceling timer of the canceled events
+        toBeCancelled.forEach(this::cancelTimer);
 
-        // now cancel some.
-        toBeCancelled.forEach(e -> {
-            Long timerId = scheduledWithTimerId.get(e);
-            if (timerId != null) {
-                vertx.cancelTimer(timerId);
-                scheduledWithTimerId.remove(e);
-            }
-        });
-
-        // now schedule some.
-        toBeScheduled.forEach(songEvent -> {
-            Duration duration = Duration.between(ZonedDateTime.now(), songEvent.getTime());
-            Long delay = duration.toMillis();
-            LOGGER.debug("setting timer for event.  event={}, delay={}, as duration={}", songEvent, delay, duration);
-            Long timerId = vertx.setTimer(delay, id -> {
-                LOGGER.info("running from timer: {}", songEvent);
-                vertx.eventBus().send(
-                        "bell-tower.player",
-                        "play " + songEvent.getTitle()
-                );
-            });
-            scheduledWithTimerId.put(songEvent, timerId);
+        // do work of setting timer for events that are new to the schedule.
+        newSchedule.forEach(songEvent -> {
+            setTimer(songEvent);
         });
 
         publishStatus();
 
         LOGGER.info("All scheduled songs: {}", scheduledWithTimerId.keySet());
+    }
+
+    /**
+     * set vertx timer to play song at the event's scheduled time.
+     * @param songEvent
+     */
+    private void setTimer(SongEvent songEvent) {
+        Duration duration = Duration.between(ZonedDateTime.now(), songEvent.getTime());
+        Long delay = duration.toMillis();
+        LOGGER.debug("setting timer for event.  event={}, delay={}, as duration={}", songEvent, delay, duration);
+        Long timerId = vertx.setTimer(delay, id -> {
+            startSongHandler(songEvent);
+        });
+        scheduledWithTimerId.put(songEvent, timerId);
+    }
+
+    // vertx timer handler which starts a song on the player
+    private void startSongHandler(SongEvent songEvent) {
+        LOGGER.info("running from timer: {}", songEvent);
+        vertx.eventBus().send(
+                "bell-tower.player",
+                "play " + songEvent.getTitle()
+        );
+    }
+
+    private void cancelTimer(SongEvent e) {
+        Long timerId = scheduledWithTimerId.get(e);
+        if (timerId != null) {
+            vertx.cancelTimer(timerId);
+            scheduledWithTimerId.remove(e);
+        }
     }
 
     private void publishStatus() {
@@ -151,6 +174,123 @@ public class SchedulerVerticle extends AbstractVerticle {
         vertx.eventBus().publish("bell-tower.scheduler.status", statusJson);
     }
 
+    private enum State {ACTIVE, INACTIVE};
+
+    /**
+     * controls vertx timers to play song events
+     */
+    private class Scheduler {
+        private Map<SongEvent, SongTimer> songTimers;
+        private Schedule schedule;
+
+        private State state = State.INACTIVE;
+
+
+        /**
+         * stop scheduling and playing songs
+         */
+        public void stop() {
+            if(state == State.ACTIVE) {
+                songTimers.forEach((st, t) -> t.stop());
+                state = State.ACTIVE;
+            }
+        }
+
+        /**
+         * start scheduling and playing songs
+         */
+        public void start() {
+            if(state == State.INACTIVE) {
+                songTimers.clear();
+                songTimers.forEach(((st, t) -> t.start()));
+                state = State.ACTIVE;
+            }
+        }
+
+        /**
+         * replace existing schedule with another
+         * @param songEvents list of songs on the new schedule
+         */
+        public void replace(List<SongEvent> songEvents) {
+            stop();
+            this.schedule = new Schedule(songEvents);
+            start();
+        }
+
+        private void timerFired(SongEvent songEvent) {
+            LOGGER.info("running from timer: {}", songEvent);
+            vertx.eventBus().send(
+                    "bell-tower.player",
+                    "play " + songEvent.getTitle()
+            );
+        }
+
+        /**
+         * manages the vertx timer for a specific song
+         */
+        private class SongTimer {
+            // one timer at most is runnig
+            private Optional<Long> timerId = Optional.empty();
+            private final SongEvent songEvent;
+            private Function<SongEvent, Void> fired;
+
+            private SongTimer(SongEvent songEvent, Function<SongEvent, Void> fired) {
+                this.songEvent = songEvent;
+                this.fired = fired;
+            }
+
+            private void stop() {
+                if(timerId.isPresent()) {
+                    vertx.cancelTimer(timerId.get());
+                }
+                timerId = Optional.empty();
+            }
+
+            private void start() {
+                Duration duration = Duration.between(ZonedDateTime.now(), songEvent.getTime());
+                Long delay = duration.toMillis();
+                LOGGER.debug("setting timer for event.  event={}, delay={}, as duration={}", songEvent, delay, duration);
+                this.timerId = Optional.of(vertx.setTimer(delay, this::fired));
+            }
+
+            private void fired(Long timerId) {
+                // if timer fires wrongly, ignore
+                // songEvent and timer id must exist, timer id must match
+                if(this.timerId.isPresent() && this.timerId.get().equals(timerId)) {
+                    fired.apply(songEvent);
+                    this.timerId = Optional.empty();
+                }
+            }
+        }
+
+
+    }
+
+
+    /**
+     * encapsulates a schedule of song events
+     */
+    private class Schedule {
+        private List<SongEvent> songEvents;
+
+        Schedule(List<SongEvent> songEvents) {
+            this.songEvents = new ArrayList<>(songEvents);
+            this.songEvents.sort(SongEvent::compareTo);
+        }
+
+        /**
+         * return next song event immediately occuring after now or dateTime, which ever is later.
+         * @param zonedDateTime
+         * @return
+         */
+        Optional<SongEvent> getNext(ZonedDateTime zonedDateTime) {
+            ZonedDateTime now = ZonedDateTime.now();
+            return songEvents.stream()
+                    .filter(se -> se.time.isAfter(now))
+                    .filter(se -> se.time.isAfter(zonedDateTime))
+                    .findFirst();
+        }
+    }
 
     /**
      * These describe the events in the calendar, each event tells when a song should be played.
