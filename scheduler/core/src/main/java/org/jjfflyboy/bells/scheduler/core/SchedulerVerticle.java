@@ -299,12 +299,13 @@ public class SchedulerVerticle extends AbstractVerticle {
     public static class SongEvent implements Calendar.Event, Comparable<SongEvent> {
         private ZonedDateTime time;
         private String title;
+        private PropertySettings settings = new PropertySettings();
 
         private SongEvent() {}
         private SongEvent(Calendar.Event event) {
             boolean isMass = isMass(event.getTitle());
             this.setTitle(isMass ? "call-to-mass.ogg" : event.getTitle());
-            this.setTime(event.getTime().minus(isMass? Duration.ofMinutes(2) : Duration.ofMillis(0)));
+            this.setTime(event.getTime().minus(isMass? settings.getCallToMassDuration() : Duration.ofMillis(0)));
         }
 
         @Override

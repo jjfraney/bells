@@ -20,8 +20,9 @@ public class PropertySettings implements Settings {
         try(InputStream in = PropertySettings.class.getResourceAsStream("/bell-tower.properties")) {
             if(in != null) {
                 properties.load(in);
+            } else {
+                LOGGER.warn("unable to load resource to properties: resource not found.");
             }
-            LOGGER.warn("unable to load resource to properties: resource not found.");
 
         } catch(IOException e) {
             LOGGER.warn("unable to load resource to properties: {}", e.getMessage());
