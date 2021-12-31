@@ -1,4 +1,4 @@
-package org.flyboy;
+package org.flyboy.bells;
 
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
