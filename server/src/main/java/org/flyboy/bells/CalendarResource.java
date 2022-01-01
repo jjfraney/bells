@@ -1,10 +1,8 @@
 package org.flyboy.bells;
 
 import io.smallrye.mutiny.Multi;
-import io.smallrye.mutiny.Uni;
-import io.smallrye.mutiny.infrastructure.Infrastructure;
 import org.flyboy.bells.calendar.Calendar;
-import org.flyboy.bells.calendar.CalendarByGoogle;
+import org.flyboy.bells.calendar.CalendarService;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -19,13 +17,10 @@ import javax.ws.rs.core.MediaType;
 @Produces(MediaType.APPLICATION_JSON)
 public class CalendarResource {
     @Inject
-    CalendarByGoogle calendar;
+    private CalendarService service;
 
     @GET
     public Multi<Calendar.Event> getEvents() {
-
-        return Uni.createFrom().item(1)
-                .emitOn(Infrastructure.getDefaultWorkerPool())
-                .onItem().transformToMulti(i -> Multi.createFrom().items(calendar.getEvents().stream()));
+        return service.getEvents();
     }
 }
