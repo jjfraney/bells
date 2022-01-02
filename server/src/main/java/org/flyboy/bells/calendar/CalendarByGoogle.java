@@ -168,10 +168,6 @@ public class CalendarByGoogle implements Calendar {
         } catch(IOException e) {
             throw new RuntimeException(e);
         }
-        items.stream().forEach(i -> LOGGER.debug("event:  id={}, summary={}, start={}",
-                i.getId(), i.getSummary(), i.getStart().getDateTime())
-        );
-
         return items.stream()
                 .map(i -> new Event(i.getStart(), i.getSummary()))
                 .collect(Collectors.toList());
