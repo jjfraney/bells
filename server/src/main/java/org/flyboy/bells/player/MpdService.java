@@ -3,6 +3,7 @@ package org.flyboy.bells.player;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.Vertx;
+import io.vertx.mutiny.core.buffer.Buffer;
 import io.vertx.mutiny.core.net.NetClient;
 import io.vertx.mutiny.core.net.NetSocket;
 
@@ -34,23 +35,27 @@ public class MpdService {
 
     /**
      * sends the mpd command to the player and returns the response as list of lines from MPD
-     * @param cmd
-     * @retur
+     * @param cmd mpd command as string
+     * @return lines (newlines omitted) of the response.
      */
     public Uni<List<String>> mpd(String cmd) {
-        Uni<List<String>> result = getNetClient().connect(PORT, "localhost").log()
+       return getNetClient().connect(PORT, "localhost")
                 .onItem().invoke(netSocket -> {
-                    netSocket.writeAndForget(cmd + "\n");
+                    netSocket.writeAndForget(cmd + "\nclose\n");
 
-                    // Closes connection from MPD server side.
-                    // Must close the socket for the stream to terminate
-                    netSocket.writeAndForget("close\n");
+                    // Must close the socket for the mutiny stream to complete promptly
+                    // after receiving the mpd response.
+
+                    // Ignoring write failures.  Expecting
+                    // socket fails to raise in the following reads.
+                    // If fails do not raise, then could lead to hang.
+                    // Too ridiculous to think about and test,
+                    // so leaving it here.
                 })
                 .onItem().transformToMulti(NetSocket::toMulti)
-                .onItem().transform(buffer -> buffer.toString())
+                .onItem().transform(Buffer::toString)
                 .flatMap(s -> Multi.createFrom().items(s.split("\n")))
                 .collect().with(Collectors.toList())
                 ;
-        return result;
     }
 }
