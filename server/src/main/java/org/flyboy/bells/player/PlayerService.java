@@ -1,6 +1,5 @@
 package org.flyboy.bells.player;
 
-import com.github.jjfraney.mpc.Command;
 import io.smallrye.mutiny.Uni;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -19,15 +18,16 @@ public class PlayerService {
     MpdService mpdService;
 
     /**
-     * returns status of the player and status of mpd.
+     * returns Uni which returns simple status of this player.
+     * @see MpdService
      * @return status
      */
     public Uni<Status> getStatus() {
         musicpd.protocol.Status cmd = new musicpd.protocol.Status();
-        return toMpd(cmd)
+        return mpdService.mpc(cmd)
                 .onItem().transform(r -> {
                             Status res = new Status();
-                            res.setMpdStatus(r);
+                            res.setState(r.getState().orElse("unknown"));
                             res.setLocked(isLocked);
                             return res;
                         });
@@ -41,13 +41,4 @@ public class PlayerService {
         isLocked = false;
     }
 
-    /**
-     * creates a uni to send command to mpd and obtain and parse response
-     * @param command to send
-     * @return response from mpd
-     */
-    private <R extends Command.Response> Uni<R> toMpd(Command<R> command) {
-        return mpdService.mpd(command.text())
-                .onItem().transform(list -> command.response(list.subList(1, list.size() -1), list.get(0)));
-    }
 }

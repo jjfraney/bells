@@ -5,7 +5,7 @@ package org.flyboy.bells.player;
  */
 public class Status {
     private Boolean isLocked;
-    private musicpd.protocol.Status.Response mpdStatus;
+    private String state;
 
     public Boolean getLocked() {
         return isLocked;
@@ -15,11 +15,11 @@ public class Status {
         isLocked = locked;
     }
 
-    public musicpd.protocol.Status.Response getMpdStatus() {
-        return mpdStatus;
+    public String getState() {
+        return state;
     }
 
-    public void setMpdStatus(musicpd.protocol.Status.Response mpdStatus) {
-        this.mpdStatus = mpdStatus;
+    public void setState(String state) {
+        this.state = state;
     }
 }

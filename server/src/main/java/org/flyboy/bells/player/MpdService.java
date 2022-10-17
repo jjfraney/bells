@@ -1,5 +1,6 @@
 package org.flyboy.bells.player;
 
+import com.github.jjfraney.mpc.Command;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.Vertx;
@@ -15,7 +16,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Service to send mpd commands and receive mpd responses.
+ * Service to send commands to and receive responses from
+ * mpd service.  The mpd service is linux based audio player service.
+ * @see <a href="https://mpd.readthedocs.io/en/latest/index.html">MPD Documentation</a>
  * @author John J. Franey
  */
 @ApplicationScoped
@@ -41,13 +44,27 @@ public class MpdService {
     String mpdHost;
 
     /**
-     * sends the mpd command to the player and returns the response as list of lines from MPD
-     * @param cmd mpd command as string
-     * @return lines (newlines omitted) of the response.
+     * Return Uni which when subscribed would send {@link Command to
+     * mpd and return response as {@link Command.Response}
+     * @param command mpc command.
+     * @return uni of command response.
+     * @see Command
+     * @see Command.Response
+     * @see <a href="https://mpd.readthedocs.io/en/latest/index.html">MPD Documentation</a>
      */
-    public Uni<List<String>> mpd(String cmd) {
-        log.infof("getting mpd net socket, port: %d, host: %s", mpdPort, mpdHost);
+    public <R extends Command.Response> Uni<R> mpc(Command<R> command) {
+        return mpc(command.text())
+                .onItem().transform(list -> command.response(list.subList(1, list.size() -1), list.get(0)));
+    }
 
+    /**
+     * Return Uni which when subscribed would send command to
+     * mpd and return response as list of lines.
+     * @param cmd as string
+     * @return lines of the response - end of line removed on each.
+     * @see <a href="https://mpd.readthedocs.io/en/latest/index.html">MPD Documentation</a>
+     */
+    public Uni<List<String>> mpc(String cmd) {
        return getNetClient().connect(mpdPort, "localhost")
                 .onItem().invoke(netSocket -> {
                     netSocket.writeAndForget(cmd + "\nclose\n");

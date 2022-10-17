@@ -17,8 +17,8 @@ public class MpdResource {
     MpdService service;
 
     @GET
-    public Multi<String> mpd(@QueryParam("cmd") String cmd) {
-        return service.mpd(cmd)
+    public Multi<String> mpc(@QueryParam("cmd") String cmd) {
+        return service.mpc(cmd)
                 .onItem().transformToMulti(list -> Multi.createFrom().items(list.stream()))
                 .onItem().transform(s -> s + "\n");
     }
@@ -26,10 +26,6 @@ public class MpdResource {
     @GET
     @Path("/status")
     public Uni<Status.Response> status() {
-        Status cmd = new Status();
-        return service.mpd(cmd.text())
-                .onItem().transform(list -> cmd.response(list.subList(1, list.size() - 1), list.get(0)));
+        return service.mpc(new Status());
     }
-
-
 }
