@@ -6,6 +6,8 @@ import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.buffer.Buffer;
 import io.vertx.mutiny.core.net.NetClient;
 import io.vertx.mutiny.core.net.NetSocket;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -21,6 +23,8 @@ public class MpdService {
     @Inject
     Vertx vertx;
 
+    private static Logger log = Logger.getLogger(MpdService.class);
+
     NetClient netClient;
 
     NetClient getNetClient() {
@@ -30,8 +34,11 @@ public class MpdService {
         return netClient;
     }
 
-    private static final int PORT = 6600;
-    private static final String HOST = "localhost";
+    @ConfigProperty(name = "mpd.port", defaultValue = "6600")
+    int mpdPort;
+
+    @ConfigProperty(name = "mpd.host", defaultValue = "localhost")
+    String mpdHost;
 
     /**
      * sends the mpd command to the player and returns the response as list of lines from MPD
@@ -39,12 +46,17 @@ public class MpdService {
      * @return lines (newlines omitted) of the response.
      */
     public Uni<List<String>> mpd(String cmd) {
-       return getNetClient().connect(PORT, "localhost")
+        log.infof("getting mpd net socket, port: %d, host: %s", mpdPort, mpdHost);
+
+       return getNetClient().connect(mpdPort, "localhost")
                 .onItem().invoke(netSocket -> {
                     netSocket.writeAndForget(cmd + "\nclose\n");
 
                     // Must close the socket for the mutiny stream to complete promptly
                     // after receiving the mpd response.
+
+                    // reusing the netSocket might not be worth it.
+                    // sure would like to know how, though.
 
                     // Ignoring write failures.  Expecting
                     // socket fails to raise in the following reads.
