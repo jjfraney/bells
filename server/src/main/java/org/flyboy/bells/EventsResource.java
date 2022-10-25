@@ -13,14 +13,17 @@ import javax.ws.rs.core.MediaType;
 /**
  * @author John J. Franey
  */
-@Path("/cal")
+@Path("/events")
 @Produces(MediaType.APPLICATION_JSON)
-public class CalendarResource {
+public class EventsResource {
+
     @Inject
-    CalendarService service;
+    CalendarService calendarService;
 
     @GET
-    public Multi<Calendar.Event> getEvents() {
-        return service.getEvents();
+    @Path("/calendar")
+    public Multi<Calendar.Event> getFromCalendar() {
+        return calendarService.getEvents();
     }
+
 }

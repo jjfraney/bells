@@ -18,7 +18,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.Dependent;
+import javax.enterprise.context.ApplicationScoped;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,7 +30,6 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,7 +37,7 @@ import java.util.stream.Collectors;
 /**
  * @author jfraney
  */
-@Dependent
+@ApplicationScoped
 public class CalendarByGoogle implements Calendar {
 
     // the google calendar id of the  calendar to query
@@ -56,7 +55,7 @@ public class CalendarByGoogle implements Calendar {
     @ConfigProperty(name = "belltower.calendar.path.storage")
     String pathStorage;
 
-    private static Logger LOGGER = LoggerFactory.getLogger(Calendar.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Calendar.class);
     /** Application name. */
     private static final String APPLICATION_NAME =
             "Bell Tower";
@@ -77,7 +76,7 @@ public class CalendarByGoogle implements Calendar {
      * at ~/.credentials/calendar-java-quickstart
      */
     private static final List<String> SCOPES =
-            Arrays.asList(CalendarScopes.CALENDAR_READONLY);
+            List.of(CalendarScopes.CALENDAR_READONLY);
 
     {
         try {
@@ -92,7 +91,7 @@ public class CalendarByGoogle implements Calendar {
     /**
      * Creates an authorized Credential object.
      * @return an authorized Credential object.
-     * @throws IOException
+     * @throws IOException when unable to connect for authorization
      */
     public Credential authorize() throws IOException {
         // Load client secrets.
@@ -115,7 +114,7 @@ public class CalendarByGoogle implements Calendar {
     /**
      * Build and return an authorized Calendar client service.
      * @return an authorized Calendar client service
-     * @throws IOException
+     * @throws IOException when unable to connect to service.
      */
     public com.google.api.services.calendar.Calendar getCalendarService() throws IOException {
         Credential credential = authorize();
@@ -125,7 +124,7 @@ public class CalendarByGoogle implements Calendar {
                 .build();
     }
 
-    public class Event implements Calendar.Event {
+    public static class Event implements Calendar.Event {
         private final ZonedDateTime time;
         private final String title;
         public Event(EventDateTime edt, String title) {
