@@ -1,4 +1,4 @@
-package org.flyboy.bells.ringer;
+package org.flyboy.bells.tower;
 
 import io.smallrye.mutiny.Uni;
 
@@ -10,7 +10,7 @@ import javax.inject.Inject;
  * @author John J. Franey
  */
 @ApplicationScoped
-public class BellRinger {
+public class Belltower {
     private Boolean isLocked = false;
 
 

@@ -1,4 +1,4 @@
-package org.flyboy.bells.ringer;
+package org.flyboy.bells.tower;
 
 import com.github.jjfraney.mpc.Command;
 import io.smallrye.mutiny.Multi;

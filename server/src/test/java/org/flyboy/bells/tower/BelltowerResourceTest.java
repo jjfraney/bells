@@ -1,4 +1,4 @@
-package org.flyboy.bells.ringer;
+package org.flyboy.bells.tower;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
@@ -18,7 +18,7 @@ import static org.hamcrest.Matchers.is;
  * @author John J. Franey
  */
 @QuarkusTest
-class BellRingerResourceTest {
+class BelltowerResourceTest {
 
     @InjectMock
     LinuxMPC linuxMPC;
@@ -32,7 +32,7 @@ class BellRingerResourceTest {
     void testStatus() {
         setup();
         given()
-                .when().get("/bell/ringer/status")
+                .when().get("/belltower/status")
                 .then().statusCode(200).body(Matchers.matchesPattern("\\{\"state\":\"stop\",\"locked\":(true|false)\\}"));
     }
 
@@ -41,7 +41,7 @@ class BellRingerResourceTest {
     void testLock() {
         setup();
         given()
-                .when().post("/bell/ringer/lock")
+                .when().post("/belltower/lock")
                 .then().statusCode(200).body(is("{\"state\":\"stop\",\"locked\":true}"));
 
     }
@@ -50,7 +50,7 @@ class BellRingerResourceTest {
     void testUnlock() {
         setup();
         given()
-                .when().delete("/bell/ringer/lock")
+                .when().delete("/belltower/lock")
                 .then().statusCode(200).body(is("{\"state\":\"stop\",\"locked\":false}"));
     }
 }

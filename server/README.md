@@ -90,15 +90,15 @@ The BellCalendar is a list of BellEvents.
 A BellEvent identifies a bell sample 
 and the time the sample is meant to be rung.
 
-## BellRinger
+## Belltower
 
-The BellRinger drives an external media player to play the bell sample.
+The Belltower drives an external media player to play the bell sample.
 
 Currently, the only media player supported is Music Player Deamon, MPD.
 MPD is a well known linux media player service.
 The command line tool 'mpc' can control the player.
-The BellRinger sends the same commands that mpc would send to the MPD.
-The BellRinger component sends MPC commands to the configured MPD player.
+The Belltower sends the same commands that mpc would send to the MPD.
+The Belltower component sends MPC commands to the configured MPD player.
 
 The external media player will drive the audio subsystem to
 play the sample on the audio device.
@@ -108,7 +108,7 @@ before the media player can successfully play the sample.
 
 ```mermaid
     classDiagram
-        class BellRinger
+        class Belltower
         class Intervalometer
         class BellEvent{
             +String sampleName
@@ -117,8 +117,8 @@ before the media player can successfully play the sample.
         class BellEventRepository{
             +List~BellEvents~ getBellEvents()
         }
-        BellRinger *-- LinuxMPC
-        Intervalometer *-- BellRinger
+        Belltower *-- LinuxMPC
+        Intervalometer *-- Belltower
         Intervalometer *--BellEventRepository
         BellEventRepository <|-- GoogleBellEventRepository
         BellEventRepository <|-- LocalBellEventRepository
