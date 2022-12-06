@@ -1,8 +1,8 @@
-package org.flyboy.bells;
+package org.flyboy.bells.calendar;
 
 import io.smallrye.mutiny.Multi;
-import org.flyboy.bells.calendar.Calendar;
-import org.flyboy.bells.calendar.CalendarService;
+import org.flyboy.bells.calendar.BellEvent;
+import org.flyboy.bells.calendar.GoogleBellEventRepository;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -13,16 +13,16 @@ import javax.ws.rs.core.MediaType;
 /**
  * @author John J. Franey
  */
-@Path("/events")
+@Path("/bell/calendar")
 @Produces(MediaType.APPLICATION_JSON)
-public class EventsResource {
+public class BellCalendarResource {
 
     @Inject
-    CalendarService calendarService;
+    GoogleBellEventRepository calendarService;
 
     @GET
-    @Path("/calendar")
-    public Multi<Calendar.Event> getFromCalendar() {
+    @Path("/events")
+    public Multi<BellEvent> getFromCalendar() {
         return calendarService.getEvents();
     }
 

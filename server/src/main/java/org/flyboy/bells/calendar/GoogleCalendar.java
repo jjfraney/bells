@@ -38,24 +38,24 @@ import java.util.stream.Collectors;
  * @author jfraney
  */
 @ApplicationScoped
-public class CalendarByGoogle implements Calendar {
+public class GoogleCalendar {
 
     // the google calendar id of the  calendar to query
-    @ConfigProperty(name = "belltower.calendar.id")
+    @ConfigProperty(name = "belltower.google.calendar.id")
     String calendarId;
 
     // the extent of the query, from now to now+lookahead
-    @ConfigProperty(name = "belltower.calendar.query.lookAhead")
+    @ConfigProperty(name = "belltower.google.calendar.query.lookAhead")
     String lookAhead;
 
     // client secrets from google.
-    @ConfigProperty(name = "belltower.calendar.path.client-secrets")
+    @ConfigProperty(name = "belltower.google.calendar.path.client-secrets")
     String clientSecrets;
 
-    @ConfigProperty(name = "belltower.calendar.path.storage")
+    @ConfigProperty(name = "belltower.google.calendar.path.storage")
     String pathStorage;
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Calendar.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BellEventRepository.class);
     /** Application name. */
     private static final String APPLICATION_NAME =
             "Bell Tower";
@@ -112,8 +112,8 @@ public class CalendarByGoogle implements Calendar {
     }
 
     /**
-     * Build and return an authorized Calendar client service.
-     * @return an authorized Calendar client service
+     * Build and return an authorized BellEventRepository client service.
+     * @return an authorized BellEventRepository client service
      * @throws IOException when unable to connect to service.
      */
     public com.google.api.services.calendar.Calendar getCalendarService() throws IOException {
@@ -124,7 +124,7 @@ public class CalendarByGoogle implements Calendar {
                 .build();
     }
 
-    public static class Event implements Calendar.Event {
+    public static class Event implements BellEvent {
         private final ZonedDateTime time;
         private final String title;
         public Event(EventDateTime edt, String title) {
@@ -143,13 +143,13 @@ public class CalendarByGoogle implements Calendar {
             return title;
         }
     }
-    @Override
-    public List<Calendar.Event> getEvents() {
+
+    public List<BellEvent> getEvents() {
         List<com.google.api.services.calendar.model.Event> items = Collections.emptyList();
         try {
             // Build a new authorized API client service.
             // Note: Do not confuse this class with the
-            //   com.google.api.services.calendar.model.Calendar class.
+            //   com.google.api.services.calendar.model.BellEventRepository class.
             com.google.api.services.calendar.Calendar service =
                     getCalendarService();
 

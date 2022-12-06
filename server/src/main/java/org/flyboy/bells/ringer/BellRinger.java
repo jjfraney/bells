@@ -1,4 +1,4 @@
-package org.flyboy.bells.player;
+package org.flyboy.bells.ringer;
 
 import io.smallrye.mutiny.Uni;
 
@@ -10,21 +10,21 @@ import javax.inject.Inject;
  * @author John J. Franey
  */
 @ApplicationScoped
-public class PlayerService {
+public class BellRinger {
     private Boolean isLocked = false;
 
 
     @Inject
-    MpdService mpdService;
+    LinuxMPC linuxMPC;
 
     /**
      * returns Uni which returns simple status of this player.
-     * @see MpdService
+     * @see LinuxMPC
      * @return status
      */
     public Uni<Status> getStatus() {
         musicpd.protocol.Status cmd = new musicpd.protocol.Status();
-        return mpdService.mpc(cmd)
+        return linuxMPC.mpc(cmd)
                 .onItem().transform(r -> {
                             Status res = new Status();
                             res.setState(r.getState().orElse("unknown"));

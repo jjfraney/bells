@@ -1,8 +1,6 @@
-package org.flyboy.bells;
+package org.flyboy.bells.ringer;
 
 import io.smallrye.mutiny.Uni;
-import org.flyboy.bells.player.PlayerService;
-import org.flyboy.bells.player.Status;
 
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
@@ -14,15 +12,15 @@ import javax.ws.rs.Path;
  * Resource offering controls of the music player.
  * @author John J. Franey
  */
-@Path("/player")                        // <1>
-public class PlayerResource {
+@Path("/bell/ringer")
+public class BellRingerResource {
     @Inject
-    PlayerService playerService;
+    BellRinger bellRinger;
 
     @GET
     @Path("/status")
     public Uni<Status> getStatus() {
-        return playerService.getStatus();
+        return bellRinger.getStatus();
     }
 
 
@@ -30,13 +28,13 @@ public class PlayerResource {
     @DELETE
     @Path("/lock")
     public Uni<Status> unlock() {
-        playerService.unlock();
-        return playerService.getStatus();
+        bellRinger.unlock();
+        return bellRinger.getStatus();
     }
     @POST
     @Path("/lock")
     public Uni<Status> lock() {
-        playerService.lock();
-        return playerService.getStatus();
+        bellRinger.lock();
+        return bellRinger.getStatus();
     }
 }

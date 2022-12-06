@@ -14,18 +14,18 @@ import java.util.Comparator;
  * @author John J. Franey
  */
 @ApplicationScoped
-public class CalendarService {
+public class GoogleBellEventRepository implements BellEventRepository {
     @Inject
-    CalendarByGoogle calendar;
+    GoogleCalendar calendar;
 
     int waitMinutes = 2;
 
     /**
-     * Return a Multi that emits sorted Calendar.Events
+     * Return a Multi that emits sorted BellEventRepository.Events
      * from a remote calendar.
      * @return list of events
      */
-    public Multi<Calendar.Event> getEvents() {
+    public Multi<BellEvent> getEvents() {
         return Uni.createFrom().item(1)
                 .emitOn(Infrastructure.getDefaultWorkerPool())
                 .onItem().transformToUni(i -> Uni.createFrom().item(calendar.getEvents()))
@@ -38,5 +38,6 @@ public class CalendarService {
                 .onItem().transformToMulti((item -> Multi.createFrom().items(item.stream())))
                 ;
     }
-    private final Comparator<Calendar.Event> eventComparator = (Calendar.Event e1, Calendar.Event e2) -> e1.getTime().compareTo(e2.getTime());
+    private final Comparator<BellEvent> eventComparator = (BellEvent e1, BellEvent e2) -> e1.getTime().compareTo(e2.getTime());
+
 }

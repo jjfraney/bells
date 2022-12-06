@@ -1,4 +1,4 @@
-package org.flyboy.bells.player;
+package org.flyboy.bells.ringer;
 
 /**
  * @author John J. Franey

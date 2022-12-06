@@ -1,9 +1,8 @@
-package org.flyboy.bells.player;
+package org.flyboy.bells.ringer;
 
 import com.github.jjfraney.mpc.Command;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.buffer.Buffer;
 import io.vertx.mutiny.core.net.NetClient;
 import io.vertx.mutiny.core.net.NetSocket;
@@ -12,6 +11,7 @@ import org.jboss.logging.Logger;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.net.ConnectException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -22,20 +22,15 @@ import java.util.stream.Collectors;
  * @author John J. Franey
  */
 @ApplicationScoped
-public class MpdService {
+public class LinuxMPC {
+
+
+    private static Logger log = Logger.getLogger(LinuxMPC.class);
+
     @Inject
-    Vertx vertx;
-
-    private static Logger log = Logger.getLogger(MpdService.class);
-
     NetClient netClient;
 
-    NetClient getNetClient() {
-        if(netClient == null) {
-            netClient = vertx.createNetClient();
-        }
-        return netClient;
-    }
+
 
     @ConfigProperty(name = "mpd.port", defaultValue = "6600")
     int mpdPort;
@@ -54,7 +49,7 @@ public class MpdService {
      */
     public <R extends Command.Response> Uni<R> mpc(Command<R> command) {
         return mpc(command.text())
-                .onItem().transform(list -> command.response(list.subList(1, list.size() -1), list.get(0)));
+                .onItem().transform(list -> command.response(list.subList(1, list.size()), list.get(0)));
     }
 
     /**
@@ -65,7 +60,10 @@ public class MpdService {
      * @see <a href="https://mpd.readthedocs.io/en/latest/index.html">MPD Documentation</a>
      */
     public Uni<List<String>> mpc(String cmd) {
-       return getNetClient().connect(mpdPort, "localhost")
+       return netClient.connect(mpdPort, mpdHost)
+               .onFailure(ConnectException.class).invoke(r -> {
+                   log.error("Unable to connect to MPD service: " + r.getMessage());
+               })
                 .onItem().invoke(netSocket -> {
                     netSocket.writeAndForget(cmd + "\nclose\n");
 
