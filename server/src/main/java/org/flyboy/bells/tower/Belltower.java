@@ -4,9 +4,12 @@ import io.smallrye.mutiny.Uni;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Layer with operations for the player.
+ *
  * @author John J. Franey
  */
 @ApplicationScoped
@@ -19,26 +22,90 @@ public class Belltower {
 
     /**
      * returns Uni which returns simple status of this player.
-     * @see LinuxMPC
+     *
      * @return status
+     * @see LinuxMPC
      */
-    public Uni<Status> getStatus() {
-        musicpd.protocol.Status cmd = new musicpd.protocol.Status();
-        return linuxMPC.mpc(cmd)
-                .onItem().transform(r -> {
-                            Status res = new Status();
-                            res.setState(r.getState().orElse("unknown"));
-                            res.setLocked(isLocked);
-                            return res;
-                        });
+    public Uni<BelltowerStatus> getStatus() {
+        return linuxMPC.mpc("status")
+                .onItem().transform(this::getBelltowerStatus);
+    }
+
+
+    public Uni<BelltowerStatus> ring(String name) {
+        return Uni.createFrom().item(isLocked)
+
+                .onItem().transformToUni(locked -> {
+                    // not available if locked.
+                    if (locked) {
+                        throw new BelltowerUnavailableException("Belltower is locked.");
+                    }
+
+                    // get status of the player
+                    return linuxMPC.mpc("status");
+                })
+
+                .onItem().transformToUni(response -> {
+                    // not available if already busy playing a bell sample
+                    String state = MpdResponse.getField(response, "state")
+                            .orElseThrow(() -> new IllegalArgumentException("state is not returned"));
+
+                    if (state.equals("play")) {
+                        throw new BelltowerUnavailableException("Belltower is busy.");
+                    }
+
+                    // play the sample
+                    String commandList = List.of(
+                            "command_list_ok_begin",
+                            "clear",
+                            "crossfade 0",
+                            "add " + name,
+                            "play",
+                            "status",
+                            "command_list_end"
+                    ).stream().collect(Collectors.joining("\n"));
+                    return linuxMPC.mpc(commandList);
+                })
+                .onItem().transform(response -> {
+                    // check if success
+                    if (!isOk(response)) {
+                        MpdResponse.Ack ack = ack(response);
+                        final int sampleNotFoundError = 50;
+
+                        // if error indicates the named sample is unknown
+                        if(ack.getError() == sampleNotFoundError) {
+                            throw new BelltowerSampleNotFoundException(name);
+                        } else {
+                            throw new BelltowerException("Failed to play sample, error="
+                                    + ack.getError() + ", text=" + ack.getMessageText());
+                        }
+                    } else {
+                        return getBelltowerStatus(response);
+                    }
+                });
     }
 
 
     public void lock() {
         isLocked = true;
     }
+
     public void unlock() {
         isLocked = false;
     }
 
+    private BelltowerStatus getBelltowerStatus(List<String> result) {
+        String state = MpdResponse.getField(result, "state").orElse("unknown");
+
+        BelltowerStatus res = new BelltowerStatus();
+        res.setState(state);
+        res.setLocked(isLocked);
+        return res;
+    }
+    private boolean isOk(List<String> result) {
+        return MpdResponse.isOk(result);
+    }
+    private MpdResponse.Ack ack(List<String> result) {
+        return MpdResponse.getAck(result);
+    }
 }

@@ -3,7 +3,7 @@ package org.flyboy.bells.tower;
 /**
  * @author John J. Franey
  */
-public class Status {
+public class BelltowerStatus {
     private Boolean isLocked;
     private String state;
 
