@@ -1,10 +1,45 @@
-# bells Project
+# belltower Project
 
-This project is quarkus based bell-tower server.
+Plays bell samples on-demand or automatically by a schedule.
+The system is customized for use by a faith community to ring bells,
+or other suitable sound samples,
+for various liturgical occasions.
+The software may be unsuited for other applications.
 
-Features:
-- obtains bell schedule from google calendar
-- caches bell schedule
+The project does not include audio amplifier or speakers.
+This project produces only computer software.
+
+
+## Runtime Requirements
+
+The belltower program requires the following at runtime:
+- an audio sound system: amplifier and speakers
+  - with audio input to match the signal presented by the computer below
+  - with volume and optionally mixing controls
+  - with speakers, sized and mounted appropriately for desired reach of the playback.
+- a desktop computer or a single-board computer running linux
+  - with internet access
+  - with a sound card and audio output to match the signal required by the sound system above
+  - a display screen
+- linux operating system on the computer with some configuration and software, including
+  - java runtime
+  - mpd (music player daemon)
+  - appropriate audio configuration to drive the sound card output suited for the audio sound system.
+
+## User Stories
+
+As a bell ringer, I'd like to 'ring', or play, media samples of bells,
+to increase the sense of community of a congregation,
+and to retain the tradition of ringing bells after replacing actual bells with modern technologies.
+
+As a bell ringer, I'd like to schedule bell samples to ring automatically,
+so I can be relieved of the manual chore of ringing the bells manually.
+
+As a bell ringer, I'd like to ring bells manually on demand,
+so they can sound at times which are not planned and scheduled.
+
+As a bell ringer, I'd like to have different bell samples available to play,
+so that the bells sounded are appropriate for the occasion.
 
 # Configuration
 belltower.calendar.query.lookAhead - on query to calendar,
@@ -37,18 +72,28 @@ belltower.mpd.host - host to send mpc requests, defaults to localhost.
 Two techniques are available to ring bells.
 One for fixed duration, and another for a duration that is controllable.
 
-Fixed duration is useful to play a song or to ring bells for constant amount of time.
-It is a single mp3 media file.
+Fixed duration refers to playing a single sample file from beginning to end.
 
-Controllable duration is implemented with three mp3 media samples:  beginning, middle and end.
-The beginning sample is played first.
-The middle is played repeatedly for some number of iterations.
-Then, the end is played.
-After the end sample, the bell ringing event is complete.
-The duration is controllable by varying the number of iterations of the middle sample.
-The samples are carefully edited for seamless transitions between the samples.
+Variable duration refers to playing three samples in sequence
+and repeating the middle sample to meet some specified duration of the total.
+The technique requires careful editing of the three samples for seemless playback.
 
-# Event Requirements
+# Remote control
+
+Some controls can be accessed remotely and securely through connections to the Internet.
+
+- remote scheduling allows a user to change the bell schedule remotely.
+- remote bell sample control allows a user to play and stop samples remotely.
+
+# Scheduling
+
+Ringing bells can be scheduled.
+Users may want bells to play at certain times at certain days.
+They would access a schedule widget,
+specify absolute or repeatable date and time
+and the sample name.
+
+## Event Requirements
 
 Events with the name 'mass' will schedule the 'call-to-mass' sample.
 
@@ -92,7 +137,21 @@ and the time the sample is meant to be rung.
 
 ## Belltower
 
-The Belltower drives an external media player to play the bell sample.
+The Belltower is the control surface for playing bell samples.
+It suports primitives similar to generic playback device such as 'play' and 'status'.
+
+### Commands
+
+- status: obtain certain interesting status from the media player
+- ring: play a named bell sample of fixed or variable length
+- lock: prevent ring from operating
+- unlock: allow ring to operate
+
+
+### Media Player
+
+The actual media player is external to the belltower.
+The belltower sends control signals to the actual media player.
 
 Currently, the only media player supported is Music Player Deamon, MPD.
 MPD is a well known linux media player service.
