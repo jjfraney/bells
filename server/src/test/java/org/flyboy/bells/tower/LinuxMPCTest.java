@@ -5,7 +5,6 @@ import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.buffer.Buffer;
 import io.vertx.mutiny.core.net.NetClient;
 import io.vertx.mutiny.core.net.NetSocket;
-import musicpd.protocol.Status;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -54,10 +53,9 @@ public class LinuxMPCTest {
 
     @Test
     public void testMpcCommand() {
-        musicpd.protocol.Status status = new Status();
-        linuxMPC.mpc(status).subscribe().with(r -> {
-            Assertions.assertEquals("stop", r.getState().orElse("absent"));
-            Assertions.assertEquals(10, r.getVolume().orElse(-1000));
+        linuxMPC.mpc("status").subscribe().with(r -> {
+            Assertions.assertEquals("stop", MpdResponse.getField(r, "state").orElse("absent"));
+            Assertions.assertEquals("10", MpdResponse.getField(r, "volume").orElse("-1000"));
 
         });
     }

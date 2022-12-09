@@ -1,6 +1,5 @@
 package org.flyboy.bells.tower;
 
-import com.github.jjfraney.mpc.MpcRuntimeException;
 
 import java.util.List;
 import java.util.Optional;
@@ -53,7 +52,7 @@ public class MpdResponse {
                 this.currentCommand = m.group(3);
                 this.messageText = m.group(4);
             } else {
-                throw new MpcRuntimeException("bad parse");
+                throw new BelltowerException("bad parse");
             }
         }
 

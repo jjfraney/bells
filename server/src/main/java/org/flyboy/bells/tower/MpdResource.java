@@ -2,7 +2,6 @@ package org.flyboy.bells.tower;
 
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
-import musicpd.protocol.Status;
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.server.ServerExceptionMapper;
 
@@ -14,6 +13,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.net.ConnectException;
+import java.util.List;
 
 @Produces(MediaType.APPLICATION_JSON)
 @Path("/mpd")                        // <1>
@@ -42,7 +42,7 @@ public class MpdResource {
 
     @GET
     @Path("/status")
-    public Uni<Status.Response> status() {
-        return service.mpc(new Status());
+    public Uni<List<String>> status() {
+        return service.mpc("status");
     }
 }

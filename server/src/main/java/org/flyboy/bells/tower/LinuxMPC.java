@@ -1,6 +1,5 @@
 package org.flyboy.bells.tower;
 
-import com.github.jjfraney.mpc.Command;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.buffer.Buffer;
@@ -37,20 +36,6 @@ public class LinuxMPC {
 
     @ConfigProperty(name = "mpd.host", defaultValue = "localhost")
     String mpdHost;
-
-    /**
-     * Return Uni which when subscribed would send {@link Command to
-     * mpd and return response as {@link Command.Response}
-     * @param command mpc command.
-     * @return uni of command response.
-     * @see Command
-     * @see Command.Response
-     * @see <a href="https://mpd.readthedocs.io/en/latest/index.html">MPD Documentation</a>
-     */
-    public <R extends Command.Response> Uni<R> mpc(Command<R> command) {
-        return mpc(command.text())
-                .onItem().transform(list -> command.response(list.subList(1, list.size()), list.get(0)));
-    }
 
     /**
      * Return Uni which when subscribed would send command to
