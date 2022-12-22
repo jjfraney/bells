@@ -21,6 +21,7 @@ import static io.restassured.RestAssured.given;
 @QuarkusTest
 public class MpdResourceTest {
 
+    @SuppressWarnings("unused")
     @InjectMock
     LinuxMPC linuxMPC;
 
@@ -42,7 +43,7 @@ public class MpdResourceTest {
                 .thenReturn(Uni.createFrom().item(mpcResult));
 
         JsonArrayBuilder builder = Json.createArrayBuilder();
-        mpcResult.stream().map(s -> s + "\n").forEach(s -> builder.add(s));
+        mpcResult.stream().map(s -> s + "\n").forEach(builder::add);
         String expected = builder.build().toString();
 
         given()

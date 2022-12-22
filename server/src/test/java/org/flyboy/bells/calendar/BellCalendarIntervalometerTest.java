@@ -65,6 +65,7 @@ public class BellCalendarIntervalometerTest {
         BellEvent one = new BellEvent(ZonedDateTime.now().plusSeconds(30), "myogg.ogg");
         List<BellEvent> events = List.of(one);
 
+        //noinspection unchecked
         Mockito.when(mockVertx.setTimer(any(Long.class), any(Consumer.class))).thenReturn(1L);
 
         Assertions.assertEquals(0, bellCalendarIntervalometer.currentTimers.size());

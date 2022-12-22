@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 public class LinuxMPC {
 
 
-    private static Logger log = Logger.getLogger(LinuxMPC.class);
+    private static final Logger logger = Logger.getLogger(LinuxMPC.class);
 
     @Inject
     NetClient netClient;
@@ -46,9 +46,7 @@ public class LinuxMPC {
      */
     public Uni<List<String>> mpc(String cmd) {
        return netClient.connect(mpdPort, mpdHost)
-               .onFailure(ConnectException.class).invoke(r -> {
-                   log.error("Unable to connect to MPD service: " + r.getMessage());
-               })
+               .onFailure(ConnectException.class).invoke(r -> logger.error("Unable to connect to MPD service: " + r.getMessage()))
                 .onItem().invoke(netSocket -> {
                     netSocket.writeAndForget(cmd + "\nclose\n");
 

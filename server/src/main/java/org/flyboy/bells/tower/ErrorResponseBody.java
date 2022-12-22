@@ -5,7 +5,8 @@ import java.util.UUID;
 /**
  * @author John J. Franey
  */
-public class ErrorRepsonseBody {
+@SuppressWarnings("unused")
+public class ErrorResponseBody {
     private String details;
     private UUID errorId = UUID.randomUUID();
 

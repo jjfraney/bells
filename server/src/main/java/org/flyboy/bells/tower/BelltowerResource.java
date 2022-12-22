@@ -4,7 +4,6 @@ import io.smallrye.mutiny.Uni;
 import org.jboss.resteasy.reactive.server.ServerExceptionMapper;
 
 import javax.inject.Inject;
-import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -31,6 +30,7 @@ public class BelltowerResource {
         return belltower.getStatus();
     }
 
+    @SuppressWarnings("QsUndeclaredPathMimeTypesInspection")
     @POST
     @Path("/ring")
     public Uni<BelltowerStatus> ring(@QueryParam("name") String name) {
@@ -43,6 +43,7 @@ public class BelltowerResource {
         belltower.unlock();
         return belltower.getStatus();
     }
+    @SuppressWarnings("QsUndeclaredPathMimeTypesInspection")
     @POST
     @Path("/lock")
     public Uni<BelltowerStatus> lock() {
@@ -50,29 +51,33 @@ public class BelltowerResource {
         return belltower.getStatus();
     }
 
+    @SuppressWarnings("unused")
     @ServerExceptionMapper
     public Response mapException(ConnectException e) {
-        ErrorRepsonseBody body = new ErrorRepsonseBody();
+        ErrorResponseBody body = new ErrorResponseBody();
         body.setDetails(e.getMessage());
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(body).build();
     }
 
+    @SuppressWarnings("unused")
     @ServerExceptionMapper
     public Response mapException(BelltowerUnavailableException e) {
-        ErrorRepsonseBody body = new ErrorRepsonseBody();
+        ErrorResponseBody body = new ErrorResponseBody();
         body.setDetails(e.getMessage());
         return Response.status(Response.Status.CONFLICT).entity(body).build();
     }
 
+    @SuppressWarnings("unused")
     @ServerExceptionMapper
     public Response mapException(BelltowerSampleNotFoundException e) {
-        ErrorRepsonseBody body = new ErrorRepsonseBody();
+        ErrorResponseBody body = new ErrorResponseBody();
         body.setDetails(e.getMessage());
         return Response.status(Response.Status.NOT_FOUND).entity(body).build();
     }
+    @SuppressWarnings("unused")
     @ServerExceptionMapper
     public Response mapException(BelltowerException e) {
-        ErrorRepsonseBody body = new ErrorRepsonseBody();
+        ErrorResponseBody body = new ErrorResponseBody();
         body.setDetails(e.getMessage());
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(body).build();
     }

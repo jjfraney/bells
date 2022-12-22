@@ -23,33 +23,35 @@ public class MpdResponse {
     public static Boolean isOk(List<String> responseLines) {
         return responseLines.size() > 1 && responseLines.get(responseLines.size() - 1).equals("OK");
     }
-    public static Optional<String> getAckLine(List<String> responseLines) {
-        Optional<String> result = Optional.ofNullable(null);
-        if(responseLines.size() > 0 && responseLines.get(responseLines.size() - 1).startsWith("ACK")) {
-            result = Optional.of(responseLines.get(responseLines.size() - 1));
-        }
-        return result;
-    }
 
     public static Ack getAck(List<String> responseLines) {
-        // you must test for Ack first, as positively present, or because OK is missing.
-        String ack = getAckLine(responseLines).orElseThrow(() -> new IllegalArgumentException("Ack is missing from response"));
-        return new Ack(ack);
+        if(responseLines.size() > 0) {
+            String lastLine = responseLines.get(responseLines.size() - 1);
+            if(lastLine.startsWith("ACK")) {
+                return new Ack(lastLine);
+            }
+        }
+        throw new IllegalArgumentException("Ack is missing from response");
     }
 
     public static class Ack {
-        private final static Pattern PATTERN = Pattern.compile("ACK \\[(\\d*)@(\\d*)\\] \\{(.*)\\} (.*)");
+        /**
+         * RegEx to parse the ack line.
+         * <ul>
+         *     <li>group(1) : error code</li>
+         *     <li>group(2) : command list number</li>
+         *     <li>group(3) : current command</li>
+         *     <li>group(4) : message text</li>
+         * </ul>
+         */
+        private final static Pattern PATTERN = Pattern.compile("ACK \\[(\\d*)@(\\d*)] \\{(.*)} (.*)");
         final private Integer error;
-        final private Integer commandListNum;
-        final private String currentCommand;
         final private String messageText;
 
         public Ack(String line) {
-            Matcher m = this.PATTERN.matcher(line);
+            Matcher m = Ack.PATTERN.matcher(line);
             if (m.matches()) {
                 this.error = Integer.parseInt(m.group(1));
-                this.commandListNum = Integer.parseInt(m.group(2));
-                this.currentCommand = m.group(3);
                 this.messageText = m.group(4);
             } else {
                 throw new BelltowerException("bad parse");
@@ -58,14 +60,6 @@ public class MpdResponse {
 
         public Integer getError() {
             return this.error;
-        }
-
-        public Integer getCommandListNum() {
-            return this.commandListNum;
-        }
-
-        public String getCurrentCommand() {
-            return this.currentCommand;
         }
 
         public String getMessageText() {

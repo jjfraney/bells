@@ -8,7 +8,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.DateTime;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.calendar.CalendarScopes;
@@ -27,17 +27,17 @@ import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
  * @author jfraney
  */
+@SuppressWarnings("unused")
 @ApplicationScoped
 public class GoogleCalendar {
 
-    // the google calendar id of the  calendar to query
+    // the Google calendar id of the  calendar to query
     @ConfigProperty(name = "belltower.google.calendar.id")
     String calendarId;
 
@@ -57,12 +57,9 @@ public class GoogleCalendar {
     private static final String APPLICATION_NAME =
             "Bell Tower";
 
-    /** Global instance of the {@link FileDataStoreFactory}. */
-    private static FileDataStoreFactory DATA_STORE_FACTORY;
-
     /** Global instance of the JSON factory. */
     private static final JsonFactory JSON_FACTORY =
-            JacksonFactory.getDefaultInstance();
+            GsonFactory.getDefaultInstance();
 
     /** Global instance of the HTTP transport. */
     private static HttpTransport HTTP_TRANSPORT;
@@ -123,7 +120,7 @@ public class GoogleCalendar {
     }
 
     public List<BellEvent> getEvents() {
-        List<com.google.api.services.calendar.model.Event> items = Collections.emptyList();
+        List<com.google.api.services.calendar.model.Event> items;
         try {
             // Build a new authorized API client service.
             // Note: Do not confuse this class with the

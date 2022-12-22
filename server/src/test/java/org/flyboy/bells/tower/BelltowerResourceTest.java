@@ -52,7 +52,7 @@ class BelltowerResourceTest {
 
         given()
                 .when().get("/belltower/status")
-                .then().statusCode(200).body(Matchers.matchesPattern("\\{\"state\":\"stop\",\"locked\":(true|false)\\}"));
+                .then().statusCode(200).body(Matchers.matchesPattern("\\{\"state\":\"stop\",\"locked\":(true|false)}"));
     }
 
 
@@ -93,12 +93,11 @@ class BelltowerResourceTest {
 
     }
 
-    private static final List<String> okLine = List.of("OK");
-
     @Test
     public void testRingSuccess() {
         String sampleName = "call-to-mass";
 
+        //noinspection unchecked
         Mockito.when(linuxMPC.mpc(anyString())).thenReturn(
                 Uni.createFrom().item(List.of("state: stop", "OK")),
                 Uni.createFrom().item(List.of("state: play", "OK"))
@@ -114,6 +113,7 @@ class BelltowerResourceTest {
     public void testRingFail() {
         String sampleName = "call-to-mass";
 
+        //noinspection unchecked
         Mockito.when(linuxMPC.mpc(anyString())).thenReturn(
                 Uni.createFrom().item(List.of("state: stop", "OK")),
                 Uni.createFrom().item(List.of("ACK [33@0] {add} some mock error"))
@@ -128,6 +128,7 @@ class BelltowerResourceTest {
     public void testRingSampleNotFound() {
         String sampleName = "call-to-mass";
 
+        //noinspection unchecked
         Mockito.when(linuxMPC.mpc(anyString())).thenReturn(
                 Uni.createFrom().item(List.of("state: stop", "OK")),
                 Uni.createFrom().item(List.of("ACK [50@0] {add} No such directory"))

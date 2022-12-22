@@ -16,12 +16,12 @@ import java.util.List;
 public class BellCalendarTest {
 
     BellCalendar bellCalendar;
-    GoogleBellEventRepository mockGoogleBellEventRepository;
+    BellEventRepository mockGoogleBellEventRepository;
 
     @BeforeEach
     public void beforeEach() {
         bellCalendar = new BellCalendar();
-        mockGoogleBellEventRepository = Mockito.mock(GoogleBellEventRepository.class);
+        mockGoogleBellEventRepository = Mockito.mock(BellEventRepository.class);
         bellCalendar.googleRepository = mockGoogleBellEventRepository;
     }
 

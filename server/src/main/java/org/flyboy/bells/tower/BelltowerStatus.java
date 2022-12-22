@@ -7,6 +7,7 @@ public class BelltowerStatus {
     private Boolean isLocked;
     private String state;
 
+    @SuppressWarnings("unused")
     public Boolean getLocked() {
         return isLocked;
     }
@@ -15,6 +16,7 @@ public class BelltowerStatus {
         isLocked = locked;
     }
 
+    @SuppressWarnings("unused")
     public String getState() {
         return state;
     }

@@ -44,7 +44,7 @@ so that the bells sounded are appropriate for the occasion.
 # Configuration
 belltower.calendar.query.lookAhead - on query to calendar,
 obtain events from now until the look ahead value.
-The look ahead value is expressed as in a string formmated
+The look ahead value is expressed as in a string formatted
 as according to [Java Duration#parse](https://docs.oracle.com/javase/8/docs/api/java/time/Duration.html#parse-java.lang.CharSequence)
 
 belltower.intervalometer.schedule.refresh.period:2h
@@ -63,7 +63,7 @@ start the bells some duration before start of mass.
 This duration is expressed in a string formatted according
 to [Java Duration#parse](https://docs.oracle.com/javase/8/docs/api/java/time/Duration.html#parse-java.lang.CharSequence)
 
-belltower.calendar.id - the id of the google calendar from which scheduled events are read.
+belltower.calendar.id - the id of the Google calendar from which scheduled events are read.
 
 belltower.calendar.path.client-secrets - path to json file which holds credentials to
 
@@ -119,10 +119,10 @@ use the default ring event schedule.
 ### Google Calendar Query Requirements
 
 Access a calendar using google calendar api.
-Query the google calendar by the id given in configuration.
+Query the Google calendar by the id given in configuration.
 Obtaining authorization to the calendar is provisioning step at install time.
 
-The google calendar is queried on configurable interval to obtain the ring schedule.
+The Google calendar is queried on configurable interval to obtain the ring schedule.
 
 # Class Design
 
@@ -142,7 +142,7 @@ and the time the sample is meant to be rung.
 ## Belltower
 
 The Belltower is the control surface for playing bell samples.
-It suports primitives similar to generic playback device such as 'play' and 'status'.
+It supports primitives similar to generic playback device such as 'play' and 'status'.
 
 ### Commands
 
@@ -203,16 +203,16 @@ The application can be packaged using:
 ./mvnw package
 ```
 It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+Be aware that it’s not a _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
 
 The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
 
-If you want to build an _über-jar_, execute the following command:
+If you want to build a _über-jar_, execute the following command:
 ```shell script
 ./mvnw package -Dquarkus.package.type=uber-jar
 ```
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
+The application, packaged as a _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
 
 ## Creating a native executable
 

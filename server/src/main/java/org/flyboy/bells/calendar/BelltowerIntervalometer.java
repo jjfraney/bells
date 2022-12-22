@@ -24,7 +24,7 @@ import static java.util.Collections.emptyMap;
 @ApplicationScoped
 public class BelltowerIntervalometer {
 
-    private static Logger logger = LoggerFactory.getLogger(BelltowerIntervalometer.class);
+    private static final Logger logger = LoggerFactory.getLogger(BelltowerIntervalometer.class);
 
     @Inject
     BellCalendar bellCalendar;
@@ -52,9 +52,9 @@ public class BelltowerIntervalometer {
     }
 
     /**
-     * cancel current timers and rebuild them using freshest
+     * cancel current timers and rebuild them using the freshest
      * scheduled bell events
-     * @param bellEvents list of bellevents for the rebuilt schedule
+     * @param bellEvents list of bell events for the rebuilt schedule
      */
     void scheduleRing(List<BellEvent> bellEvents) {
         logger.debug("scheduling events, current={}", currentTimers);
@@ -73,7 +73,7 @@ public class BelltowerIntervalometer {
 
                 // collect a map of timer id -> bell event
                 .collect(Collectors.toMap(t -> t.timerId, t -> t.bellEvent));
-        logger.debug("current Timers={}", currentTimers);
+        logger.info("current Timers={}", currentTimers);
     }
 
     /**

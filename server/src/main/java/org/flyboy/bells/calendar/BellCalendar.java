@@ -16,7 +16,7 @@ import java.util.List;
 public class BellCalendar {
 
     @Inject
-    GoogleBellEventRepository googleRepository;
+    BellEventRepository googleRepository;
 
     public Uni<List<BellEvent>> getEvents() {
         return googleRepository.getEvents().map(events -> {

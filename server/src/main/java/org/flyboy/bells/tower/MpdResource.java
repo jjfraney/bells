@@ -19,16 +19,17 @@ import java.util.List;
 @Path("/mpd")                        // <1>
 public class MpdResource {
 
-    private static Logger log = Logger.getLogger(MpdResource.class);
+    private static final Logger logger = Logger.getLogger(MpdResource.class);
 
     @Inject
     LinuxMPC service;
 
+    @SuppressWarnings("unused")
     @ServerExceptionMapper
     public Response mapException(ConnectException e) {
-        log.error(e);
+        logger.error(e);
 
-        ErrorRepsonseBody body = new ErrorRepsonseBody();
+        ErrorResponseBody body = new ErrorResponseBody();
         body.setDetails(e.getMessage());
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(body).build();
     }

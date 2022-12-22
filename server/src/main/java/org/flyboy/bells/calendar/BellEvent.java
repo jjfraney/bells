@@ -9,9 +9,9 @@ import static java.time.Instant.ofEpochMilli;
 import static java.time.ZonedDateTime.ofInstant;
 
 /**
- * Represent the data of a schedulable bell event.
- * Of interest in a bell event is only the name of the smple to play
- * and the time to play it.
+ * Represent the data of a bell event.
+ * Of interest in a bell event is only the name of the sample to ring
+ * and the time to ring it.
  * @author John J. Franey
  */
 public class BellEvent {

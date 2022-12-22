@@ -5,7 +5,6 @@ import io.smallrye.mutiny.Uni;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Layer with operations for the player.
@@ -32,6 +31,7 @@ public class Belltower {
     }
 
 
+    @SuppressWarnings("ReactiveStreamsThrowInOperator")
     public Uni<BelltowerStatus> ring(String name) {
         return Uni.createFrom().item(isLocked)
 
@@ -55,7 +55,7 @@ public class Belltower {
                     }
 
                     // play the sample
-                    String commandList = List.of(
+                    String commandList = String.join("\n",
                             "command_list_ok_begin",
                             "clear",
                             "crossfade 0",
@@ -63,7 +63,7 @@ public class Belltower {
                             "play",
                             "status",
                             "command_list_end"
-                    ).stream().collect(Collectors.joining("\n"));
+                    );
                     return linuxMPC.mpc(commandList);
                 })
                 .onItem().transform(response -> {

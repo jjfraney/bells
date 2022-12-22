@@ -7,7 +7,6 @@ import io.vertx.core.Vertx;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.Comparator;
 import java.util.List;
 
 /**
