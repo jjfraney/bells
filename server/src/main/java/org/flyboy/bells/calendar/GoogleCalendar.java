@@ -37,40 +37,29 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class GoogleCalendar {
 
-    // the Google calendar id of the  calendar to query
-    @ConfigProperty(name = "belltower.google.calendar.id")
-    String calendarId;
-
-    // the extent of the query, from now to now+lookahead
-    @ConfigProperty(name = "belltower.google.calendar.query.lookAhead")
-    String lookAhead;
-
-    // client secrets from google.
-    @ConfigProperty(name = "belltower.google.calendar.path.client-secrets")
-    String clientSecrets;
-
-    @ConfigProperty(name = "belltower.google.calendar.path.storage")
-    String pathStorage;
-
     private static final Logger LOGGER = LoggerFactory.getLogger(BellEventRepository.class);
-    /** Application name. */
+    /**
+     * Application name.
+     */
     private static final String APPLICATION_NAME =
             "Bell Tower";
-
-    /** Global instance of the JSON factory. */
+    /**
+     * Global instance of the JSON factory.
+     */
     private static final JsonFactory JSON_FACTORY =
             GsonFactory.getDefaultInstance();
-
-    /** Global instance of the HTTP transport. */
-    private static HttpTransport HTTP_TRANSPORT;
-
-    /** Global instance of the scopes required by this quickstart.
-     *
+    /**
+     * Global instance of the scopes required by this quickstart.
+     * <p>
      * If modifying these scopes, delete your previously saved credentials
      * at ~/.credentials/calendar-java-quickstart
      */
     private static final List<String> SCOPES =
             List.of(CalendarScopes.CALENDAR_READONLY);
+    /**
+     * Global instance of the HTTP transport.
+     */
+    private static HttpTransport HTTP_TRANSPORT;
 
     static {
         try {
@@ -81,9 +70,21 @@ public class GoogleCalendar {
         }
     }
 
+    // the Google calendar id of the  calendar to query
+    @ConfigProperty(name = "belltower.google.calendar.id")
+    String calendarId;
+    // the extent of the query, from now to now+lookahead
+    @ConfigProperty(name = "belltower.google.calendar.query.lookAhead")
+    String lookAhead;
+    // client secrets from google.
+    @ConfigProperty(name = "belltower.google.calendar.path.client-secrets")
+    String clientSecrets;
+    @ConfigProperty(name = "belltower.google.calendar.path.storage")
+    String pathStorage;
 
     /**
      * Creates an authorized Credential object.
+     *
      * @return an authorized Credential object.
      * @throws IOException when unable to connect for authorization
      */
@@ -108,6 +109,7 @@ public class GoogleCalendar {
 
     /**
      * Build and return an authorized BellEventRepository client service.
+     *
      * @return an authorized BellEventRepository client service
      * @throws IOException when unable to connect to service.
      */
@@ -130,7 +132,7 @@ public class GoogleCalendar {
 
             DateTime now = new DateTime(ZonedDateTime.now().toEpochSecond() * 1000);
             DateTime later = new DateTime(ZonedDateTime.now().plus(readDuration(lookAhead)).toEpochSecond() * 1000);
-            LOGGER.debug("query now={}, lookahead={}, later={}, calendarId={}", now, lookAhead, later, calendarId.substring(0,10));
+            LOGGER.debug("query now={}, lookahead={}, later={}, calendarId={}", now, lookAhead, later, calendarId.substring(0, 10));
             Events events = service.events().list(calendarId)
                     .setMaxResults(10)
                     .setTimeMin(now)
@@ -139,7 +141,7 @@ public class GoogleCalendar {
                     .setSingleEvents(true)
                     .execute();
             items = events.getItems();
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException(e);
         }
         return items.stream()
@@ -152,15 +154,16 @@ public class GoogleCalendar {
         try {
             result = Duration.parse(asString);
         } catch (DateTimeParseException e) {
-            LOGGER.error("Unable to parse duration, value={}",  asString);
+            LOGGER.error("Unable to parse duration, value={}", asString);
             result = Duration.parse("PT6H");
         }
         return result;
     }
+
     private FileDataStoreFactory makeDataStoreFactory() {
         try {
             return new FileDataStoreFactory(new File(pathStorage));
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException("Unable to create file data store factory: " + pathStorage);
         }
     }

@@ -12,6 +12,7 @@ import static java.time.ZonedDateTime.ofInstant;
  * Represent the data of a bell event.
  * Of interest in a bell event is only the name of the sample to ring
  * and the time to ring it.
+ *
  * @author John J. Franey
  */
 public class BellEvent {
@@ -20,7 +21,7 @@ public class BellEvent {
 
     /**
      * @param milliseconds of epoch (from jan 1, 1970 midnight UTC) of bell event
-     * @param title of bell event
+     * @param title        of bell event
      */
     public BellEvent(Long milliseconds, String title) {
         this(ofInstant(ofEpochMilli(milliseconds), ZoneId.systemDefault()), title);
@@ -28,7 +29,7 @@ public class BellEvent {
 
     /**
      * @param dateTime of time of the bell event
-     * @param title of bell event
+     * @param title    of bell event
      */
     public BellEvent(ZonedDateTime dateTime, String title) {
         Objects.requireNonNull(title);
@@ -39,7 +40,7 @@ public class BellEvent {
     }
 
     public ZonedDateTime getTime() {
-        if(title.equalsIgnoreCase("mass")) {
+        if (title.equalsIgnoreCase("mass")) {
             // TODO: Observe the configuration parameter for this time offset
             return time.minus(1, ChronoUnit.MINUTES);
         } else {
@@ -48,7 +49,7 @@ public class BellEvent {
     }
 
     public String getTitle() {
-        if(title.equalsIgnoreCase("mass")) {
+        if (title.equalsIgnoreCase("mass")) {
             return "call-to-mass.ogg";
         } else {
             return title;

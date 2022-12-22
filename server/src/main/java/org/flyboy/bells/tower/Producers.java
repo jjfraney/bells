@@ -16,7 +16,8 @@ public class Producers {
     @Inject
     Vertx vertx;
 
-    @Produces @ApplicationScoped
+    @Produces
+    @ApplicationScoped
     public NetClient getNetClient() {
         return vertx.createNetClient();
     }

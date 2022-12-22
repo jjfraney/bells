@@ -20,6 +20,7 @@ public class GoogleBellEventRepository implements BellEventRepository {
     /**
      * Return a Multi that emits sorted BellEventRepository.Events
      * from a remote calendar.
+     *
      * @return list of events
      */
     public Uni<List<BellEvent>> getEvents() {

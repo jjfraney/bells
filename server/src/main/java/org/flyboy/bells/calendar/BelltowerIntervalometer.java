@@ -54,6 +54,7 @@ public class BelltowerIntervalometer {
     /**
      * cancel current timers and rebuild them using the freshest
      * scheduled bell events
+     *
      * @param bellEvents list of bell events for the rebuilt schedule
      */
     void scheduleRing(List<BellEvent> bellEvents) {
@@ -79,6 +80,7 @@ public class BelltowerIntervalometer {
     /**
      * set a vertx timer to ring the bell at some offset from reference time.
      * The reference time can be equal to now.
+     *
      * @param reference zoned date time
      * @param bellEvent names the bell sample to ring
      * @return the id of the scheduled timer
@@ -90,13 +92,14 @@ public class BelltowerIntervalometer {
 
     /**
      * request the belltower to ring the bells.
+     *
      * @param timerId of the expired timer
      */
     void ring(Long timerId) {
 
         logger.debug("timer fired: {}", timerId);
 
-        if(currentTimers.containsKey(timerId)) {
+        if (currentTimers.containsKey(timerId)) {
 
             BellEvent bellEvent = currentTimers.get(timerId);
 
@@ -115,9 +118,11 @@ public class BelltowerIntervalometer {
     /**
      * tuple to hold the timerId of the timer
      * scheduled to fire for a given bellEvent
-     * @param timerId of a timer
+     *
+     * @param timerId   of a timer
      * @param bellEvent the timer handler will play
      */
-    private record Ticket(long timerId, BellEvent bellEvent) {}
+    private record Ticket(long timerId, BellEvent bellEvent) {
+    }
 
 }

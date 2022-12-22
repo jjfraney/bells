@@ -10,11 +10,13 @@ import java.util.List;
 /**
  * queries all existing bell event repositories
  * to return soonest events.
+ *
  * @author John J. Franey
  */
 @ApplicationScoped
 public class BellCalendar {
 
+    private final Comparator<BellEvent> eventComparator = Comparator.comparing(BellEvent::getTime);
     @Inject
     BellEventRepository googleRepository;
 
@@ -24,7 +26,5 @@ public class BellCalendar {
             return events;
         });
     }
-
-    private final Comparator<BellEvent> eventComparator = Comparator.comparing(BellEvent::getTime);
 
 }

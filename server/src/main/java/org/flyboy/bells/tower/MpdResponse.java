@@ -25,9 +25,9 @@ public class MpdResponse {
     }
 
     public static Ack getAck(List<String> responseLines) {
-        if(responseLines.size() > 0) {
+        if (responseLines.size() > 0) {
             String lastLine = responseLines.get(responseLines.size() - 1);
-            if(lastLine.startsWith("ACK")) {
+            if (lastLine.startsWith("ACK")) {
                 return new Ack(lastLine);
             }
         }

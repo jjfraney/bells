@@ -5,6 +5,7 @@ package org.flyboy.bells.tower;
  */
 public class BelltowerSampleNotFoundException extends BelltowerException {
     private final String sampleName;
+
     BelltowerSampleNotFoundException(String sampleName) {
         this.sampleName = sampleName;
     }

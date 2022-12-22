@@ -13,11 +13,9 @@ import java.util.List;
  */
 @ApplicationScoped
 public class Belltower {
-    private Boolean isLocked = false;
-
-
     @Inject
     LinuxMPC linuxMPC;
+    private Boolean isLocked = false;
 
     /**
      * returns Uni which returns simple status of this player.
@@ -73,7 +71,7 @@ public class Belltower {
                         final int sampleNotFoundError = 50;
 
                         // if error indicates the named sample is unknown
-                        if(ack.getError() == sampleNotFoundError) {
+                        if (ack.getError() == sampleNotFoundError) {
                             throw new BelltowerSampleNotFoundException(name);
                         } else {
                             throw new BelltowerException("Failed to play sample, error="
@@ -102,9 +100,11 @@ public class Belltower {
         res.setLocked(isLocked);
         return res;
     }
+
     private boolean isOk(List<String> result) {
         return MpdResponse.isOk(result);
     }
+
     private MpdResponse.Ack ack(List<String> result) {
         return MpdResponse.getAck(result);
     }

@@ -17,8 +17,9 @@ import java.util.stream.Collectors;
 /**
  * Service to send commands to and receive responses from
  * mpd service.  The mpd service is linux based audio player service.
- * @see <a href="https://mpd.readthedocs.io/en/latest/index.html">MPD Documentation</a>
+ *
  * @author John J. Franey
+ * @see <a href="https://mpd.readthedocs.io/en/latest/index.html">MPD Documentation</a>
  */
 @ApplicationScoped
 public class LinuxMPC {
@@ -30,7 +31,6 @@ public class LinuxMPC {
     NetClient netClient;
 
 
-
     @ConfigProperty(name = "mpd.port", defaultValue = "6600")
     int mpdPort;
 
@@ -40,13 +40,14 @@ public class LinuxMPC {
     /**
      * Return Uni which when subscribed would send command to
      * mpd and return response as list of lines.
+     *
      * @param cmd as string
      * @return lines of the response - end of line removed on each.
      * @see <a href="https://mpd.readthedocs.io/en/latest/index.html">MPD Documentation</a>
      */
     public Uni<List<String>> mpc(String cmd) {
-       return netClient.connect(mpdPort, mpdHost)
-               .onFailure(ConnectException.class).invoke(r -> logger.error("Unable to connect to MPD service: " + r.getMessage()))
+        return netClient.connect(mpdPort, mpdHost)
+                .onFailure(ConnectException.class).invoke(r -> logger.error("Unable to connect to MPD service: " + r.getMessage()))
                 .onItem().invoke(netSocket -> {
                     netSocket.writeAndForget(cmd + "\nclose\n");
 

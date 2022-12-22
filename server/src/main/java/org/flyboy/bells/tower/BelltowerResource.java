@@ -16,6 +16,7 @@ import java.net.ConnectException;
 
 /**
  * Resource offering controls of the music player.
+ *
  * @author John J. Franey
  */
 @Produces(MediaType.APPLICATION_JSON)
@@ -43,6 +44,7 @@ public class BelltowerResource {
         belltower.unlock();
         return belltower.getStatus();
     }
+
     @SuppressWarnings("QsUndeclaredPathMimeTypesInspection")
     @POST
     @Path("/lock")
@@ -74,6 +76,7 @@ public class BelltowerResource {
         body.setDetails(e.getMessage());
         return Response.status(Response.Status.NOT_FOUND).entity(body).build();
     }
+
     @SuppressWarnings("unused")
     @ServerExceptionMapper
     public Response mapException(BelltowerException e) {
