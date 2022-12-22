@@ -47,6 +47,10 @@ obtain events from now until the look ahead value.
 The look ahead value is expressed as in a string formmated
 as according to [Java Duration#parse](https://docs.oracle.com/javase/8/docs/api/java/time/Duration.html#parse-java.lang.CharSequence)
 
+belltower.intervalometer.schedule.refresh.period:2h
+The period between refreshes of the schedule from
+all source.  Default is 2 hours.
+
 belltower.call-to-mass.duration - The time to start the 'call-to-mass'
 bell sequence.
 The event on the schedule is spelled 'mass',
@@ -70,13 +74,13 @@ belltower.mpd.host - host to send mpc requests, defaults to localhost.
 # Bell ringing
 
 Two techniques are available to ring bells.
-One for fixed duration, and another for a duration that is controllable.
+One for fixed duration, and another for a variable duration.
 
 Fixed duration refers to playing a single sample file from beginning to end.
 
 Variable duration refers to playing three samples in sequence
 and repeating the middle sample to meet some specified duration of the total.
-The technique requires careful editing of the three samples for seemless playback.
+The technique requires careful editing of the three samples for seamless playback.
 
 # Remote control
 
@@ -87,22 +91,22 @@ Some controls can be accessed remotely and securely through connections to the I
 
 # Scheduling
 
-Ringing bells can be scheduled.
-Users may want bells to play at certain times at certain days.
+The ringing of bells can be scheduled.
+Users may want bells to ring at certain times at certain days.
 They would access a schedule widget,
 specify absolute or repeatable date and time
 and the sample name.
 
 ## Event Requirements
 
-Events with the name 'mass' will schedule the 'call-to-mass' sample.
+Events with the name 'mass' will schedule the 'call-to-mass' ring sample.
 
 ## Ring Event Schedule
 
 A 'ring event' or 'event' is a scheduled ringing of the bell.
 Bells can be scheduled.
 
-A default schedule can be defined as program configu8ration.
+A default schedule can be defined as program configuration.
 It is not changeable while the program runs.
 Dynamic scheduling can be performed only from remote calendar.
 So far, only Google Calendar is supported.
@@ -122,8 +126,8 @@ The google calendar is queried on configurable interval to obtain the ring sched
 
 # Class Design
 
-## Intervalometer
-The Intervalometer class will start ringing bells (by playing bell samples)
+## BelltowerIntervalometer
+The BelltowerIntervalometer class will start ringing bells (by playing bell samples)
 at intervals calculated from the bell events on the BellCalendar.
 
 An intervalometer is some device which can trigger events over some specific interval.
@@ -168,7 +172,7 @@ before the media player can successfully play the sample.
 ```mermaid
     classDiagram
         class Belltower
-        class Intervalometer
+        class BelltowerIntervalometer
         class BellEvent{
             +String sampleName
             +DateTime ringTime
@@ -177,8 +181,8 @@ before the media player can successfully play the sample.
             +List~BellEvents~ getBellEvents()
         }
         Belltower *-- LinuxMPC
-        Intervalometer *-- Belltower
-        Intervalometer *--BellEventRepository
+        BelltowerIntervalometer *-- Belltower
+        BelltowerIntervalometer *--BellEventRepository
         BellEventRepository <|-- GoogleBellEventRepository
         BellEventRepository <|-- LocalBellEventRepository
 ```

@@ -12,7 +12,6 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.DateTime;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.calendar.CalendarScopes;
-import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.services.calendar.model.Events;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
@@ -26,8 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.Collections;
@@ -78,7 +75,7 @@ public class GoogleCalendar {
     private static final List<String> SCOPES =
             List.of(CalendarScopes.CALENDAR_READONLY);
 
-    {
+    static {
         try {
             HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
         } catch (Throwable t) {
@@ -107,6 +104,7 @@ public class GoogleCalendar {
                         .build();
         Credential credential = new AuthorizationCodeInstalledApp(
                 flow, new LocalServerReceiver()).authorize("user");
+        // TODO: why are credentials saved every run...
         LOGGER.info("Credentials saved to {}", pathStorage);
         return credential;
     }
@@ -124,26 +122,6 @@ public class GoogleCalendar {
                 .build();
     }
 
-    public static class Event implements BellEvent {
-        private final ZonedDateTime time;
-        private final String title;
-        public Event(EventDateTime edt, String title) {
-            this.title = title;
-            Instant instant = Instant.ofEpochMilli(edt.getDateTime().getValue());
-            time = ZonedDateTime.ofInstant(instant, ZoneId.systemDefault());
-        }
-
-        @Override
-        public ZonedDateTime getTime() {
-            return time;
-        }
-
-        @Override
-        public String getTitle() {
-            return title;
-        }
-    }
-
     public List<BellEvent> getEvents() {
         List<com.google.api.services.calendar.model.Event> items = Collections.emptyList();
         try {
@@ -155,7 +133,7 @@ public class GoogleCalendar {
 
             DateTime now = new DateTime(ZonedDateTime.now().toEpochSecond() * 1000);
             DateTime later = new DateTime(ZonedDateTime.now().plus(readDuration(lookAhead)).toEpochSecond() * 1000);
-            LOGGER.debug("query now={}, lookahead={}, later={}", now, lookAhead, later);
+            LOGGER.debug("query now={}, lookahead={}, later={}, calendarId={}", now, lookAhead, later, calendarId.substring(0,10));
             Events events = service.events().list(calendarId)
                     .setMaxResults(10)
                     .setTimeMin(now)
@@ -168,7 +146,7 @@ public class GoogleCalendar {
             throw new RuntimeException(e);
         }
         return items.stream()
-                .map(i -> new Event(i.getStart(), i.getSummary()))
+                .map(i -> new BellEvent(i.getStart().getDateTime().getValue(), i.getSummary()))
                 .collect(Collectors.toList());
     }
 

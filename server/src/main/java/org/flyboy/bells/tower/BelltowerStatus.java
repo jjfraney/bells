@@ -22,4 +22,12 @@ public class BelltowerStatus {
     public void setState(String state) {
         this.state = state;
     }
+
+    @Override
+    public String toString() {
+        return "BelltowerStatus{" +
+                "isLocked=" + isLocked +
+                ", state='" + state + '\'' +
+                '}';
+    }
 }

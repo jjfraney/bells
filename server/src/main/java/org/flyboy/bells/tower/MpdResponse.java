@@ -38,7 +38,7 @@ public class MpdResponse {
     }
 
     public static class Ack {
-        private final Pattern PATTERN = Pattern.compile("ACK \\[(\\d*)@(\\d*)\\] \\{(.*)\\} (.*)");
+        private final static Pattern PATTERN = Pattern.compile("ACK \\[(\\d*)@(\\d*)\\] \\{(.*)\\} (.*)");
         final private Integer error;
         final private Integer commandListNum;
         final private String currentCommand;
