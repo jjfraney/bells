@@ -1,4 +1,4 @@
-package org.flyboy.bells.calendar;
+package org.flyboy.bells.ring;
 
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.infrastructure.Infrastructure;
@@ -13,17 +13,17 @@ import java.util.List;
  * @author John J. Franey
  */
 @ApplicationScoped
-public class GoogleBellEventRepository implements BellEventRepository {
+public class GoogleRingRequestRepository implements RingRequestRepository {
     @Inject
     GoogleCalendar calendar;
 
     /**
-     * Return a Multi that emits sorted BellEventRepository.Events
-     * from a remote calendar.
+     * Return a Multi that emits sorted {@link RingRequest}s
+     * from a remote or local repository.
      *
-     * @return list of events
+     * @return list of {@link RingRequest} as a {@link Uni}
      */
-    public Uni<List<BellEvent>> getEvents() {
+    public Uni<List<RingRequest>> getRequests() {
         return Uni.createFrom().item(1)
                 .emitOn(Infrastructure.getDefaultWorkerPool())
                 .onItem().transformToUni(i -> Uni.createFrom().item(calendar.getEvents()))

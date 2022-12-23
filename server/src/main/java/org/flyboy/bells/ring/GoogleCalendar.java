@@ -1,4 +1,4 @@
-package org.flyboy.bells.calendar;
+package org.flyboy.bells.ring;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 @ApplicationScoped
 public class GoogleCalendar {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(BellEventRepository.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RingRequestRepository.class);
     /**
      * Application name.
      */
@@ -108,9 +108,9 @@ public class GoogleCalendar {
     }
 
     /**
-     * Build and return an authorized BellEventRepository client service.
+     * Build and return an authorized RingRequestRepository client service.
      *
-     * @return an authorized BellEventRepository client service
+     * @return an authorized RingRequestRepository client service
      * @throws IOException when unable to connect to service.
      */
     public com.google.api.services.calendar.Calendar getCalendarService() throws IOException {
@@ -121,12 +121,12 @@ public class GoogleCalendar {
                 .build();
     }
 
-    public List<BellEvent> getEvents() {
+    public List<RingRequest> getEvents() {
         List<com.google.api.services.calendar.model.Event> items;
         try {
             // Build a new authorized API client service.
             // Note: Do not confuse this class with the
-            //   com.google.api.services.calendar.model.BellEventRepository class.
+            //   com.google.api.services.calendar.model.RingRequestRepository class.
             com.google.api.services.calendar.Calendar service =
                     getCalendarService();
 
@@ -145,7 +145,7 @@ public class GoogleCalendar {
             throw new RuntimeException(e);
         }
         return items.stream()
-                .map(i -> new BellEvent(i.getStart().getDateTime().getValue(), i.getSummary()))
+                .map(i -> new RingRequest(i.getStart().getDateTime().getValue(), i.getSummary()))
                 .collect(Collectors.toList());
     }
 

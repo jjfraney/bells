@@ -71,15 +71,33 @@ belltower.mpd.port - port to send mpc requests, defaults to 6600.
 
 belltower.mpd.host - host to send mpc requests, defaults to localhost.
 
-# Bell ringing
+# Control surfaces
 
-Two techniques are available to ring bells.
-One for fixed duration, and another for a variable duration.
+The belltower supports ringing on demand,
+or on some interval (at 7:30 every morning),
+or at specific dates and times in the future (4 pm on Christmas Eve, 2020).
 
-Fixed duration refers to playing a single sample file from beginning to end.
+Note: intention to offer web based control with https,
+and embedded local control with a UI based on javafx.
+* on demand by embedded local control
+* by interval or on singular date and time by remote calendar.
 
-Variable duration refers to playing three samples in sequence
-and repeating the middle sample to meet some specified duration of the total.
+# Media samples
+
+The belltower is essentially a media file player.
+The media files contains audio samples of some sequence of bells rinning.
+
+The samples should be clean without backend noise like city traffic or conversations.
+
+The samples can be proprietary and created by a sound engineer.
+Samples unencumbered by restrictive copyrights are distributed with the software.
+
+The tower can work with two kinds of samples:
+* a fixed duration sample: 
+playing a single sample file is played from beginning to end.
+
+* a veriable duration sample - three samples are played in sequence
+and the middle sample is repeated until the requested duration is played.
 The technique requires careful editing of the three samples for seamless playback.
 
 # Remote control
@@ -89,17 +107,18 @@ Some controls can be accessed remotely and securely through connections to the I
 - remote scheduling allows a user to change the bell schedule remotely.
 - remote bell sample control allows a user to play and stop samples remotely.
 
-# Scheduling
+# Ringing bells
 
-The ringing of bells can be scheduled.
+The ringing of bells can be driven by calendar entries.
 Users may want bells to ring at certain times at certain days.
-They would access a schedule widget,
-specify absolute or repeatable date and time
-and the sample name.
+They would access a calendar widget or remote calendar,
+specify an absolute or repeatable date and time
+and the ring sample name.
 
 ## Event Requirements
 
-Events with the name 'mass' will schedule the 'call-to-mass' ring sample.
+Events with the name 'mass' will schedule the 'call-to-mass' ring sample,
+at some configurable offset time before time of the event.
 
 ## Ring Event Schedule
 
@@ -126,23 +145,52 @@ The Google calendar is queried on configurable interval to obtain the ring sched
 
 # Class Design
 
-## BelltowerIntervalometer
-The BelltowerIntervalometer class will start ringing bells (by playing bell samples)
-at intervals calculated from the bell events on the BellCalendar.
+## RingRequest and RingEvent
+A RingRequest is created from user input.
+The RingRequest comes from external data sources including Google,
+or a file.
+
+A RingEvent is internalization of a RingRequest.
+It specifically and concretely identifies the time and name of each ring sample.
+
+As convenience:
+* when the title of a RingRequest is 'mass',
+the bell sample title and time are generated automatically to
+pre-configured values.
+
+There is room for extension here.
+In the future, other constructs of the RingRequest can be defined
+for the convenience of the user.
+For example, a title of 'wedding' could be introduced
+as way to conveniently specify the wedding peal sample.
+
+The RingEventFactory would be changed to support future extensions.
+It interprets the RingRequest's title to create an intended RingEvent.
+
+## RingIntervalometer
+The RingIntervalometer class will automatically
+ring bells
+at intervals calculated from the ring requests on the BellCalendar.
 
 An intervalometer is some device which can trigger events over some specific interval.
 An intervalometer may be familiar to photographers and bombers.
 
-## BellCalendar
-The BellCalendar is a list of BellEvents.
+## RingRequestRepository
+The RingRequestRepository storage for the user's requests to ring the bells.
 
-A BellEvent identifies a bell sample 
-and the time the sample is meant to be rung.
+The repository can be remote, for example the Google calendar API.
+
+Extensions are expected but not currently delivered.
+Possible extensions are to an Office 365 calendar API,
+or a local file.
 
 ## Belltower
 
-The Belltower is the control surface for playing bell samples.
-It supports primitives similar to generic playback device such as 'play' and 'status'.
+The Belltower can:
+- start playing bell samples,
+- stop playing bell samples,
+- get status of the underlying media player.
+
 
 ### Commands
 
@@ -172,19 +220,28 @@ before the media player can successfully play the sample.
 ```mermaid
     classDiagram
         class Belltower
-        class BelltowerIntervalometer
-        class BellEvent{
+        class RingIntervalometer
+        class RingEvent{
             +String sampleName
-            +DateTime ringTime
+            +DateTime dateTime
         }
-        class BellEventRepository{
-            +List~BellEvents~ getBellEvents()
+        class RingRequest{
+            +String title
+            +DateTime dateTime
+        }
+        class RingEventFactory {
+            +RingEvent createFrom(RingRequest)
+        }
+        RingEvent *-- RingRequest
+        class RingRequestRepository{
+            +List~RingRequest~ getRingRequests()
         }
         Belltower *-- LinuxMPC
-        BelltowerIntervalometer *-- Belltower
-        BelltowerIntervalometer *--BellEventRepository
-        BellEventRepository <|-- GoogleBellEventRepository
-        BellEventRepository <|-- LocalBellEventRepository
+        RingIntervalometer *-- Belltower
+        RingIntervalometer *--RingRequestRepository
+        RingIntervalometer *-- RingEventFactory
+        RingRequestRepository <|-- GoogleRingRequestRepository
+        RingRequestRepository <|-- LocalRingRequestRepository
 ```
 
 ## Running the application in dev mode

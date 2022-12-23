@@ -1,4 +1,4 @@
-package org.flyboy.bells.calendar;
+package org.flyboy.bells.ring;
 
 import io.smallrye.mutiny.Uni;
 
@@ -14,15 +14,15 @@ import java.util.List;
  */
 @Path("/bell/calendar")
 @Produces(MediaType.APPLICATION_JSON)
-public class BellCalendarResource {
+public class RingRequestRepositoryResource {
 
     @Inject
-    BellCalendar calendarService;
+    RingRequestMultiRepository repository;
 
     @GET
     @Path("/events")
-    public Uni<List<BellEvent>> getFromCalendar() {
-        return calendarService.getEvents();
+    public Uni<List<RingRequest>> getRingRequests() {
+        return repository.getRequests();
     }
 
 }
