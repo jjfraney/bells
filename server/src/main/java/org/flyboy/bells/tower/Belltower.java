@@ -29,6 +29,11 @@ public class Belltower {
     }
 
 
+    /*
+    1) check locked, get status and list of songs from mpd
+    2) check status, select songs from list, then clear, add, play, get lengths, status from mpd
+    3) if repeats, set timers, return status
+     */
     @SuppressWarnings("ReactiveStreamsThrowInOperator")
     public Uni<BelltowerStatus> ring(String name) {
         return Uni.createFrom().item(isLocked)
@@ -64,6 +69,7 @@ public class Belltower {
                     );
                     return linuxMPC.mpc(commandList);
                 })
+
                 .onItem().transform(response -> {
                     // check if success
                     if (!isOk(response)) {
@@ -95,10 +101,7 @@ public class Belltower {
     private BelltowerStatus getBelltowerStatus(List<String> result) {
         String state = MpdResponse.getField(result, "state").orElse("unknown");
 
-        BelltowerStatus res = new BelltowerStatus();
-        res.setState(state);
-        res.setLocked(isLocked);
-        return res;
+        return new BelltowerStatus(isLocked, state);
     }
 
     private boolean isOk(List<String> result) {

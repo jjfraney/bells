@@ -53,9 +53,7 @@ public class RingIntervalometerTest {
         }};
 
 
-        BelltowerStatus result = new BelltowerStatus();
-        result.setState("play");
-        result.setLocked(false);
+        BelltowerStatus result = new BelltowerStatus(false, "play");
 
         Mockito.when(mockBelltower.ring("myogg.ogg")).thenReturn(Uni.createFrom().item(result));
 
