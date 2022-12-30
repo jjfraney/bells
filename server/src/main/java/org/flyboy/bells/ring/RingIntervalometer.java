@@ -146,7 +146,7 @@ public class RingIntervalometer {
      * scheduled to fire for to handle a {@link RingEvent}
      *
      * @param timerId of a timer
-     * @param event handled by this ticket's timer
+     * @param event   handled by this ticket's timer
      */
     private record Ticket(long timerId, RingEvent event) {
         public Ticket {

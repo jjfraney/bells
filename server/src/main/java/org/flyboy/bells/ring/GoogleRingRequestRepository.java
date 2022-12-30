@@ -23,6 +23,7 @@ public class GoogleRingRequestRepository implements RingRequestRepository {
      *
      * @return list of {@link RingRequest} as a {@link Uni}
      */
+    @Override
     public Uni<List<RingRequest>> getRequests() {
         return Uni.createFrom().item(1)
                 .emitOn(Infrastructure.getDefaultWorkerPool())

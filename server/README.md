@@ -71,6 +71,9 @@ belltower.mpd.port - port to send mpc requests, defaults to 6600.
 
 belltower.mpd.host - host to send mpc requests, defaults to localhost.
 
+belltower.peal.duration.default - default overall duration in seconds of the
+variable bell patterns.  defaults to 60 (i.e, one minute)
+
 # Control surfaces
 
 The belltower supports ringing on demand,
@@ -84,8 +87,8 @@ and embedded local control with a UI based on javafx.
 
 # Media samples
 
-The belltower is essentially a media file player.
-The media files contains audio samples of some sequence of bells rinning.
+The belltower is essentially a media file player with a built-in schedule.
+The media files contains audio samples of some sequence of pealing bells.
 
 The samples should be clean without backend noise like city traffic or conversations.
 
@@ -94,10 +97,11 @@ Samples unencumbered by restrictive copyrights are distributed with the software
 
 The tower can work with two kinds of samples:
 * a fixed duration sample: 
-playing a single sample file is played from beginning to end.
+playback of a single sample file from beginning to end.
 
-* a veriable duration sample - three samples are played in sequence
-and the middle sample is repeated until the requested duration is played.
+* a variable duration sample:  three samples are played back in sequence
+and the middle sample is repeated until the requested peal duration expires.
+The duration of play back is the sum duration of the segments: beginning, middle x repeats, end.
 The technique requires careful editing of the three samples for seamless playback.
 
 # Remote control
@@ -191,6 +195,86 @@ The Belltower can:
 - stop playing bell samples,
 - get status of the underlying media player.
 
+### RepeatTimer
+
+The RepeatTimer is used by Belltower to control the variable duration peals.
+
+The RepeatTimer requires three sample segments of the peal:
+a beginning, middle and an end.
+
+The peal can stretch by repeating the middle segment.
+The middle segment will be repeated until the peal's length matches what is requested.
+
+In a case where each segment is 10 seconds long, then including the beginning and the end segments (20 secs),
+1. a 60-second peal is attained by playing the middle segment 4 times (40 secs).
+2. a 120-second peal is attained by playing the middle segment 10 times (100 secs).
+
+The length of the peal can vary by the number of times the middle segment is repeated.
+
+
+```mermaid
+flowchart LR
+    B[peal-beginning] --> M[peal-middle] -- N > 1 --> M --> E[peal-end]
+```
+
+
+For MPD, RepeatTimer uses timers to control the repeats.
+The timer handlers send commands to MPD to start repeats, and to stop repeats.
+The timers' expiration are calculated from the lengths of beginning and middle segments.
+The length of each segment is obtained from the audio player.
+The audio player can provide most accurate length if it decodes the audio samples,
+extracts duration and make it available to the bell tower with an API.
+MPD gives the duration as part of song metadata which is parsed by the class MpdMetadata.
+
+Currently, RepeatTimer cannot support any other playback device.
+It works only with MPD.
+
+### Create Variable Bell Peals
+To create the 3 segments of a variable bell peal:
+1. Select an existing bell sample that demonstrates at least 3 cycles.
+2. Open the sample in an audio editor.
+3. Cut out and save the first cycle.  Example name of the file: 'peal-beginning.ogg'.
+4. Cut out and save a middle cycle.  Filename: 'peal-middle.ogg'.
+5. Cut out and save the last cycle.  Filename: 'peal-end.ogg'. 
+
+The filenames for segment of a peal MUST have the same root name, and the name of the segment it contains.
+The root name of the peal appears first.
+The segment of the peal follows the root and precedes the extension.
+The peal's segments MUST contain the string '-beginning', '-middle', or '-end'.
+The extension of the file name is the audio format, in this case 'ogg'.
+
+Examples of variable peal segment filenames:
+1. for a wedding peal: wedding-peal-beginning.ogg, wedding-peal-middle.ogg, wedding-peal-end.ogg.
+2. for a funeral toll: funeral-toll-beginning.ogg, funeral-toll-middle.ogg, funeral-toll-end.ogg.
+
+The segments must be carefully edited to playback without audio seams.
+Seams in the audio ruin the illusion created by the recorded bells.
+
+For seamless playback:
+1. Each segment should contain at most one cycle of the bell peal.
+2. The attack of the middle and end segments must be identical.
+3. The release of the beginning and the middle segments must be identical.
+4. The release of the beginning and middle segments must fit the attack of the middle and end segments respectively.
+5. Pitch, amplitude and other sound characteristics must be identical across all three samples.
+6. A long fadeout can be tolerated only in the release of the end segment. 
+7. Only the bell sample should appear in the segments.
+Any silence or noise before the peal's attack in the beginning segment or after the peal's release in the end segment
+should be trimmed off.
+Silence, if unavoidable, can be tolerated before the attack of the beginning segment,
+or after the release of the end segment,
+and should be no longer than tenth of a second.  Noises in any segments which are not bells will ruin the illusion.
+
+After some experience, you may see some reason to experiment and break rules of the above recipe.
+In reality, the peal can be understood as a serial playback of three audio files, with the middle repeated.
+The rules of the composition is only that:
+1. the middle's attack can follow seamlessly from the beginning's and its own release,
+2. the end's attack can follow seamlessly from the middle's release.
+3. and the segments be short enough to make sense in the setting as a bell peal.
+
+If you want to break even those rules, you're on your own.
+Belltower may be unsuited.
+Perhaps, you would want a player piano?
+
 
 ### Commands
 
@@ -206,12 +290,13 @@ The actual media player is external to the belltower.
 The belltower sends control signals to the actual media player.
 
 Currently, the only media player supported is Music Player Deamon, MPD.
-MPD is a well known linux media player service.
-The command line tool 'mpc' can control the player.
-The Belltower sends the same commands that mpc would send to the MPD.
-The Belltower component sends MPC commands to the configured MPD player.
+Capability to use a different player is not a goal of belltower at this time.
 
-The external media player will drive the audio subsystem to
+The command line tool 'mpc' can control the MPD player.
+The Belltower component sends commands to the configured MPD player
+over a network connection or unix socket.
+
+The media player will drive the audio subsystem to
 play the sample on the audio device.
 The audio device should be preconfigured
 and the media player loaded with samples and verified
@@ -220,28 +305,22 @@ before the media player can successfully play the sample.
 ```mermaid
     classDiagram
         class Belltower
-        class RingIntervalometer
-        class RingEvent{
-            +String sampleName
-            +DateTime dateTime
-        }
-        class RingRequest{
-            +String title
-            +DateTime dateTime
-        }
-        class RingEventFactory {
-            +RingEvent createFrom(RingRequest)
-        }
-        RingEvent *-- RingRequest
         class RingRequestRepository{
             +List~RingRequest~ getRingRequests()
         }
         Belltower *-- LinuxMPC
+        Belltower *-- RepeatTimer
+        Belltower *-- MpdMetadata
         RingIntervalometer *-- Belltower
         RingIntervalometer *--RingRequestRepository
-        RingIntervalometer *-- RingEventFactory
         RingRequestRepository <|-- GoogleRingRequestRepository
         RingRequestRepository <|-- LocalRingRequestRepository
+        
+        class RingRequest{
+            +String title
+            +DateTime dateTime
+        }
+
 ```
 
 ## Running the application in dev mode

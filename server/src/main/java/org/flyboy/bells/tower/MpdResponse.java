@@ -21,7 +21,7 @@ public class MpdResponse {
     }
 
     public static Boolean isOk(List<String> responseLines) {
-        return responseLines.size() > 1 && responseLines.get(responseLines.size() - 1).equals("OK");
+        return responseLines.size() > 1 && responseLines.get(responseLines.size() - 1).contains("OK");
     }
 
     public static Ack getAck(List<String> responseLines) {

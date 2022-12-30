@@ -36,7 +36,7 @@ public class LinuxMPCTest {
 
         Mockito.doNothing().when(netSocket).writeAndForget(anyString());
 
-        Buffer buffers = Buffer.buffer("OK MPD 0.23.5\nstate: stop\nvolume: 10\nOK\n");
+        Buffer buffers = Buffer.buffer("OK MPD 0.23.5\nrepeatMode: stop\nvolume: 10\nOK\n");
         Mockito
                 .when(netSocket.toMulti())
                 .thenReturn(Multi.createFrom().item(buffers));
@@ -46,7 +46,7 @@ public class LinuxMPCTest {
     public void testMpcCmdString() {
         linuxMPC.mpc("status").subscribe().with(l -> {
             Assertions.assertEquals(4, l.size());
-            Assertions.assertEquals("state: stop", l.get(1));
+            Assertions.assertEquals("repeatMode: stop", l.get(1));
             Assertions.assertEquals("volume: 10", l.get(2));
         });
     }
@@ -54,7 +54,7 @@ public class LinuxMPCTest {
     @Test
     public void testMpcCommand() {
         linuxMPC.mpc("status").subscribe().with(r -> {
-            Assertions.assertEquals("stop", MpdResponse.getField(r, "state").orElse("absent"));
+            Assertions.assertEquals("stop", MpdResponse.getField(r, "repeatMode").orElse("absent"));
             Assertions.assertEquals("10", MpdResponse.getField(r, "volume").orElse("-1000"));
 
         });

@@ -1,9 +1,13 @@
 package org.flyboy.bells.tower;
 
 import io.smallrye.mutiny.Uni;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -13,8 +17,17 @@ import java.util.List;
  */
 @ApplicationScoped
 public class Belltower {
+    private static final Logger logger = LoggerFactory.getLogger(Belltower.class);
+
+    // in seconds
+    @ConfigProperty(name = "belltower.peal.duration.default", defaultValue = "60")
+    long defaultPealDuration;
+
     @Inject
     LinuxMPC linuxMPC;
+    @Inject
+    RepeatTimer repeatTimer;
+
     private Boolean isLocked = false;
 
     /**
@@ -36,19 +49,21 @@ public class Belltower {
      */
     @SuppressWarnings("ReactiveStreamsThrowInOperator")
     public Uni<BelltowerStatus> ring(String name) {
-        return Uni.createFrom().item(isLocked)
-
-                .onItem().transformToUni(locked -> {
+        return Uni.createFrom().nullItem()
+                .onItem().transform(nullItem -> {
                     // not available if locked.
-                    if (locked) {
+                    if (isLocked) {
                         throw new BelltowerUnavailableException("Belltower is locked.");
                     }
-
-                    // get status of the player
-                    return linuxMPC.mpc("status");
+                    return null;
                 })
 
-                .onItem().transformToUni(response -> {
+                .onItem().transformToUni(n -> {
+                    // get list of songs and status of the player
+                    return linuxMPC.mpc("lsinfo", "status");
+                })
+
+                .onItem().transform(response -> {
                     // not available if already busy playing a bell sample
                     String state = MpdResponse.getField(response, "state")
                             .orElseThrow(() -> new IllegalArgumentException("state is not returned"));
@@ -56,23 +71,46 @@ public class Belltower {
                     if (state.equals("play")) {
                         throw new BelltowerUnavailableException("Belltower is busy.");
                     }
+                    return response;
+                })
 
-                    // play the sample
-                    String commandList = String.join("\n",
-                            "command_list_ok_begin",
-                            "clear",
-                            "crossfade 0",
-                            "add " + name,
-                            "play",
-                            "status",
-                            "command_list_end"
-                    );
-                    return linuxMPC.mpc(commandList);
+                .onItem().transform(response -> {
+
+                    List<String> commands = new ArrayList<>();
+                    commands.add("clear");
+                    commands.add("crossfade 0");
+
+                    MpdMetadata mpdMetadata = new MpdMetadata(response);
+                    List<MpdMetadata.Song> songs = mpdMetadata.findMatch(name);
+                    switch (songs.size()) {
+                        case 1 -> commands.add("add " + songs.get(0).filename());
+                        case 3 -> {
+                            commands.add("add " + songs.get(0).filename());
+                            commands.add("add " + songs.get(1).filename());
+                            commands.add("add " + songs.get(2).filename());
+                            repeatTimer.start(songs, defaultPealDuration * 1000);
+                        }
+                        default -> {
+                            logger.warn("sample not found, name={}, songs={}", name, songs);
+                            throw new BelltowerSampleNotFoundException(name);
+                        }
+                    }
+
+                    commands.add("play");
+                    commands.add("status");
+                    return commands;
+                })
+
+                .onItem().transformToUni(commands -> {
+                    logger.debug("sending mpc commands: {}", commands);
+                    return linuxMPC.mpc(commands);
                 })
 
                 .onItem().transform(response -> {
                     // check if success
                     if (!isOk(response)) {
+                        repeatTimer.stop();
+
                         MpdResponse.Ack ack = ack(response);
                         final int sampleNotFoundError = 50;
 
@@ -88,7 +126,6 @@ public class Belltower {
                     }
                 });
     }
-
 
     public void lock() {
         isLocked = true;

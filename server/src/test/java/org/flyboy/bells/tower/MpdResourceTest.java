@@ -37,7 +37,7 @@ public class MpdResourceTest {
 
     @Test
     public void testStringCommand() {
-        List<String> mpcResult = List.of("state=off", "volume=10");
+        List<String> mpcResult = List.of("repeatMode=off", "volume=10");
 
         Mockito.when(linuxMPC.mpc(ArgumentMatchers.any(String.class)))
                 .thenReturn(Uni.createFrom().item(mpcResult));

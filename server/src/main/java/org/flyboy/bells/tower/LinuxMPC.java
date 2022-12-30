@@ -11,7 +11,10 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.net.ConnectException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -68,5 +71,34 @@ public class LinuxMPC {
                 .flatMap(s -> Multi.createFrom().items(s.split("\n")))
                 .collect().with(Collectors.toList())
                 ;
+    }
+
+    /**
+     * sends a command list using MPD 'command_begin_ok', 'command_end'.
+     *
+     * @param first command
+     * @param last  commands as variable args
+     * @return list of response lines isolated by 'list_OK' (per MPD protocol)
+     */
+    public Uni<List<String>> mpc(String first, String... last) {
+        List<String> commands = new ArrayList<>();
+        commands.add(first);
+        commands.addAll(Arrays.asList(last));
+        return mpc(commands);
+    }
+
+    public Uni<List<String>> mpc(List<String> commands) {
+        Objects.requireNonNull(commands);
+        commands.forEach(Objects::requireNonNull);
+        if (commands.size() <= 0) {
+            throw new IllegalArgumentException("one or more commands expected");
+        }
+
+        String wrappedCommands =
+                "command_list_ok_begin\n"
+                        + String.join("\n", commands)
+                        + "\ncommand_list_end";
+        return mpc(wrappedCommands);
+
     }
 }

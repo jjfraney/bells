@@ -25,6 +25,7 @@ class BelltowerTest {
     public void beforeEach() {
         belltower = new Belltower();
         belltower.linuxMPC = Mockito.mock(LinuxMPC.class);
+        belltower.repeatTimer = Mockito.mock(RepeatTimer.class);
     }
 
     @Test
@@ -52,7 +53,7 @@ class BelltowerTest {
     @Test
     void testLock() {
 
-        Mockito.when(belltower.linuxMPC.mpc(anyString())).thenReturn(Uni.createFrom().item(List.of("state: stop")));
+        Mockito.when(belltower.linuxMPC.mpc("status")).thenReturn(Uni.createFrom().item(List.of("state: stop")));
 
         BelltowerStatus expected = new BelltowerStatus(true, "stop");
 
@@ -88,7 +89,7 @@ class BelltowerTest {
 
     @Test
     public void testRingWhenBusy() {
-        Mockito.when(belltower.linuxMPC.mpc(anyString())).thenReturn(Uni.createFrom().item(List.of("state: play", "OK")));
+        Mockito.when(belltower.linuxMPC.mpc("lsinfo", "status")).thenReturn(Uni.createFrom().item(List.of("state: play", "OK")));
 
         Uni<BelltowerStatus> actual = belltower.ring("call-to-mass");
         actual.subscribe().withSubscriber(UniAssertSubscriber.create())
@@ -101,10 +102,18 @@ class BelltowerTest {
         String sampleName = "call-to-mass";
 
         //noinspection unchecked
-        Mockito.when(belltower.linuxMPC.mpc(anyString())).thenReturn(
-                Uni.createFrom().item(List.of("state: stop", "OK")),
-                Uni.createFrom().item(List.of("state: play", "OK"))
-        );
+        Mockito.when(belltower.linuxMPC.mpc("lsinfo", "status")).thenReturn(
+                Uni.createFrom().item(List.of(
+                        "file: call-to-mass.ogg",
+                        "duration: 3.3",
+                        "list_OK",
+                        "state: stop",
+                        "list_OK",
+                        "OK")));
+        List<String> play = List.of("clear", "crossfade 0", "add call-to-mass.ogg", "play", "status");
+        Mockito.when(belltower.linuxMPC.mpc(play)).thenReturn(
+                Uni.createFrom().item(List.of("state: play", "OK")));
+
 
         Uni<BelltowerStatus> actual = belltower.ring(sampleName);
         BelltowerStatus expected = new BelltowerStatus(false, "play");
@@ -119,14 +128,24 @@ class BelltowerTest {
         String sampleName = "call-to-mass";
 
         //noinspection unchecked
-        Mockito.when(belltower.linuxMPC.mpc(anyString())).thenReturn(
-                Uni.createFrom().item(List.of("state: stop", "OK")),
-                Uni.createFrom().item(List.of("ACK [33@0] {add} some mock error"))
-        );
+        Mockito.when(belltower.linuxMPC.mpc("lsinfo", "status")).thenReturn(
+                Uni.createFrom().item(List.of(
+                        "file: call-to-mass.ogg",
+                        "duration: 3.3",
+                        "list_OK",
+                        "state: stop",
+                        "list_OK",
+                        "OK")));
+        List<String> play = List.of("clear", "crossfade 0", "add call-to-mass.ogg", "play", "status");
+        Mockito.when(belltower.linuxMPC.mpc(play)).thenReturn(
+                Uni.createFrom().item(List.of("ACK [33@0] {add} some mock error")));
 
         Uni<BelltowerStatus> actual = belltower.ring(sampleName);
         actual.subscribe().withSubscriber(UniAssertSubscriber.create())
                 .assertFailed().assertFailedWith(BelltowerException.class);
+
+        Mockito.verify(belltower.repeatTimer, Mockito.times(1)).stop();
+
     }
 
 
@@ -135,13 +154,13 @@ class BelltowerTest {
         String sampleName = "call-to-mass";
 
         //noinspection unchecked
-        Mockito.when(belltower.linuxMPC.mpc(anyString())).thenReturn(
-                Uni.createFrom().item(List.of("state: stop", "OK")),
-                Uni.createFrom().item(List.of("ACK [50@0] {add} No such directory"))
-        );
+        Mockito.when(belltower.linuxMPC.mpc("lsinfo", "status")).thenReturn(
+                Uni.createFrom().item(List.of("state: stop", "OK")));
+
         Uni<BelltowerStatus> actual = belltower.ring(sampleName);
         actual.subscribe().withSubscriber(UniAssertSubscriber.create())
                 .assertFailed().assertFailedWith(BelltowerSampleNotFoundException.class);
+
     }
 
 }
