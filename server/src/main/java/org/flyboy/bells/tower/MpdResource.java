@@ -22,7 +22,7 @@ public class MpdResource {
     private static final Logger logger = Logger.getLogger(MpdResource.class);
 
     @Inject
-    LinuxMPC service;
+    Mpd service;
 
     @SuppressWarnings("unused")
     @ServerExceptionMapper
@@ -36,7 +36,7 @@ public class MpdResource {
 
     @GET
     public Multi<String> mpc(@QueryParam("cmd") String cmd) {
-        return service.mpc(cmd)
+        return service.send(cmd)
                 .onItem().transformToMulti(list -> Multi.createFrom().items(list.stream()))
                 .onItem().transform(s -> s + "\n");
     }
@@ -44,6 +44,6 @@ public class MpdResource {
     @GET
     @Path("/status")
     public Uni<List<String>> status() {
-        return service.mpc("status");
+        return service.send("status");
     }
 }

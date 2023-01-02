@@ -16,19 +16,19 @@ import static org.mockito.ArgumentMatchers.anyString;
 /**
  * @author John J. Franey
  */
-public class LinuxMPCTest {
+public class MpdTest {
 
-    LinuxMPC linuxMPC;
+    Mpd mpd;
 
     @BeforeEach
     public void beforeEach() {
         NetClient netClient = Mockito.mock(NetClient.class);
         NetSocket netSocket = Mockito.mock(NetSocket.class);
 
-        linuxMPC = new LinuxMPC();
-        linuxMPC.netClient = netClient;
-        linuxMPC.mpdHost = "localhost";
-        linuxMPC.mpdPort = 6600;
+        mpd = new Mpd();
+        mpd.netClient = netClient;
+        mpd.mpdHost = "localhost";
+        mpd.mpdPort = 6600;
 
         Mockito
                 .when(netClient.connect(anyInt(), anyString()))
@@ -44,7 +44,7 @@ public class LinuxMPCTest {
 
     @Test
     public void testMpcCmdString() {
-        linuxMPC.mpc("status").subscribe().with(l -> {
+        mpd.send("status").subscribe().with(l -> {
             Assertions.assertEquals(4, l.size());
             Assertions.assertEquals("repeatMode: stop", l.get(1));
             Assertions.assertEquals("volume: 10", l.get(2));
@@ -53,7 +53,7 @@ public class LinuxMPCTest {
 
     @Test
     public void testMpcCommand() {
-        linuxMPC.mpc("status").subscribe().with(r -> {
+        mpd.send("status").subscribe().with(r -> {
             Assertions.assertEquals("stop", MpdResponse.getField(r, "repeatMode").orElse("absent"));
             Assertions.assertEquals("10", MpdResponse.getField(r, "volume").orElse("-1000"));
 

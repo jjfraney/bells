@@ -24,7 +24,7 @@ public class RepeatTimerTest {
 
         repeatTimer.vertx = Mockito.mock(Vertx.class);
 
-        repeatTimer.linuxMPC = Mockito.mock(LinuxMPC.class);
+        repeatTimer.mpd = Mockito.mock(Mpd.class);
     }
 
     final List<MpdMetadata.Song> songs = List.of(
@@ -39,7 +39,7 @@ public class RepeatTimerTest {
         repeatTimer.stop();
 
         Mockito.verify(repeatTimer.vertx, Mockito.times(0)).cancelTimer(any(Long.class));
-        Mockito.verify(repeatTimer.linuxMPC, Mockito.times(0)).mpc("repeat off");
+        Mockito.verify(repeatTimer.mpd, Mockito.times(1)).send(RepeatTimer.MPD_DEACTIVATE_REPEAT_MODE);
     }
 
     @Test
@@ -53,8 +53,7 @@ public class RepeatTimerTest {
         Mockito.verify(repeatTimer.vertx, Mockito.times(1)).cancelTimer(repeatTimer.activateRepeatTimerId);
         Mockito.verify(repeatTimer.vertx, Mockito.times(1)).cancelTimer(any(Long.class));
 
-        // do not send 'repeat off' command
-        Mockito.verify(repeatTimer.linuxMPC, Mockito.times(0)).mpc("repeat off");
+        Mockito.verify(repeatTimer.mpd, Mockito.times(1)).send(RepeatTimer.MPD_DEACTIVATE_REPEAT_MODE);
     }
 
     @Test
@@ -69,7 +68,7 @@ public class RepeatTimerTest {
         Mockito.verify(repeatTimer.vertx, Mockito.times(1)).cancelTimer(any(Long.class));
 
         // send repeat off command
-        Mockito.verify(repeatTimer.linuxMPC, Mockito.times(1)).mpc(repeatTimer.deactivateRepeatMode);
+        Mockito.verify(repeatTimer.mpd, Mockito.times(1)).send(RepeatTimer.MPD_DEACTIVATE_REPEAT_MODE);
     }
 
     @Test
@@ -92,7 +91,7 @@ public class RepeatTimerTest {
     @Test
     public void testActivateRepeatSuccess() {
         List<String> response = List.of("OK MPD 0.23.5", "OK");
-        Mockito.when(repeatTimer.linuxMPC.mpc(repeatTimer.activateRepeatMode)).thenReturn(Uni.createFrom().item(response));
+        Mockito.when(repeatTimer.mpd.send(RepeatTimer.MPD_ACTIVATE_REPEAT_MODE)).thenReturn(Uni.createFrom().item(response));
 
         repeatTimer.activateRepeatTimerId = 10L;
         repeatTimer.activateRepeatTimerHandler.accept(repeatTimer.activateRepeatTimerId);
@@ -103,7 +102,7 @@ public class RepeatTimerTest {
     @Test
     public void testActivateRepeatFail() {
         List<String> response = List.of("OK MPD 0.23.5", "OK");
-        Mockito.when(repeatTimer.linuxMPC.mpc(repeatTimer.activateRepeatMode))
+        Mockito.when(repeatTimer.mpd.send(RepeatTimer.MPD_ACTIVATE_REPEAT_MODE))
                 .thenReturn(Uni.createFrom().item(response).onItem().failWith(() -> new BelltowerException("mock")));
 
         repeatTimer.activateRepeatTimerId = 10L;
@@ -115,7 +114,7 @@ public class RepeatTimerTest {
     @Test
     public void testDeactivateRepeatSuccess() {
         List<String> response = List.of("OK MPD 0.23.5", "OK");
-        Mockito.when(repeatTimer.linuxMPC.mpc(repeatTimer.deactivateRepeatMode)).thenReturn(Uni.createFrom().item(response));
+        Mockito.when(repeatTimer.mpd.send(RepeatTimer.MPD_DEACTIVATE_REPEAT_MODE)).thenReturn(Uni.createFrom().item(response));
 
         repeatTimer.deactivateRepeatTimerId = 10L;
         repeatTimer.deactivateRepeatTimerHandler.accept(repeatTimer.deactivateRepeatTimerId);
@@ -126,10 +125,10 @@ public class RepeatTimerTest {
     @Test
     public void testDeactivateRepeatFail() {
         List<String> response = List.of("OK MPD 0.23.5", "OK");
-        Mockito.when(repeatTimer.linuxMPC.mpc(repeatTimer.deactivateRepeatMode))
+        Mockito.when(repeatTimer.mpd.send(RepeatTimer.MPD_DEACTIVATE_REPEAT_MODE))
                 .thenReturn(Uni.createFrom().item(response).onItem().failWith(() -> new BelltowerException("mock")));
 
-        repeatTimer.activateRepeatTimerId = 10L;
+        repeatTimer.deactivateRepeatTimerId = 10L;
         repeatTimer.deactivateRepeatTimerHandler.accept(repeatTimer.activateRepeatTimerId);
 
         Assertions.assertNull(repeatTimer.deactivateRepeatTimerId);

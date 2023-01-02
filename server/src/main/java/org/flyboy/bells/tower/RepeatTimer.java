@@ -1,6 +1,5 @@
 package org.flyboy.bells.tower;
 
-import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,15 +14,18 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 /**
- * To implement a variable length bell pattern, use MPD's repeat feature.
+ * To implement a variable length bell pattern, use repeat feature of media player.
  * Turn on repeats for the middle segment to control the length of the bell pattern.
  * Turn off repeats to end the bell pattern within the requested duration.
+ * Another design/implementation is required by a media player without a similar repeat feature to MPD:
+ * individual songs of a playlist can be singularly repeated and repeats can be controlled during playback.
+ * In MPD, 'repeat' and 'single' commands are used to implement this feature.
  * <p>
  * Timers are required to implement the behavior.
- * A timer is fired at the right time to send the 'repeat on' command.
+ * A timer is fired at the right time to activate repeat of the middle sample.
  * The right time to turn on repeats is in the midst of the middle sample of the full bell pattern.
- * Another timer is fired at the right time to send the 'repeat off' command.
- * The right time to turn off repeats is after the full duration of the bell pattern can be assured.
+ * Another timer is fired at the right time to deactivate repeat of the middle sample..
+ * The right time to turn off repeats is after the full duration of the bell pattern is accomplished.
  * </p>
  *
  * @author John J. Franey
@@ -32,13 +34,20 @@ import java.util.function.Consumer;
 public class RepeatTimer {
     private final Logger logger = LoggerFactory.getLogger(RepeatTimer.class);
 
-    final List<String> activateRepeatMode = List.of("repeat 1", "single 1");
-    final List<String> deactivateRepeatMode = List.of("repeat 0", "single 0");
+    /**
+     * MPD protocol messages to activate repeat mode.
+     */
+    static final List<String> MPD_ACTIVATE_REPEAT_MODE = List.of("repeat 1", "single 1");
+
+    /**
+     * MPD protocol messages to deactivate repeat mode.
+     */
+    static final List<String> MPD_DEACTIVATE_REPEAT_MODE = List.of("repeat 0", "single 0");
 
     @Inject
     Vertx vertx;
     @Inject
-    LinuxMPC linuxMPC;
+    Mpd mpd;
     /**
      * Timer controlling activation of repeat mode.
      */
@@ -46,17 +55,16 @@ public class RepeatTimer {
     /**
      * a timer handler that would activate repeat mode,
      */
-    final Consumer<Long> activateRepeatTimerHandler = (l) ->
-            activateRepeatMode()
-                    .subscribe().with(
-                            response -> {
-                                logger.debug("repeat activate succeeded, timer id={}", activateRepeatTimerId);
-                                activateRepeatTimerId = null;
-                            },
-                            fail -> {
-                                activateRepeatTimerId = null;
-                                logger.error("repeat activate failed: {}", fail.getMessage());
-                            });
+    final Consumer<Long> activateRepeatTimerHandler = (l) -> {
+        long timerId = activateRepeatTimerId;
+        activateRepeatTimerId = null;
+        mpd.send(MPD_ACTIVATE_REPEAT_MODE)
+                .subscribe().with(
+                        response -> logger.debug("Repeat activate succeeded, timer id={}", timerId),
+                        fail -> logger.error("Repeat activate failed, timer id={}: {}", timerId, fail.getMessage())
+                );
+    };
+
     /**
      * Timer controlling deactivation of repeat mode.
      */
@@ -64,18 +72,15 @@ public class RepeatTimer {
     /**
      * A timer handler that would deactivate repeat mode.
      */
-    final Consumer<Long> deactivateRepeatTimerHandler = (l) ->
-            deactivateRepeatMode()
-                    .subscribe().with(
-                            response -> {
-                                logger.debug("repeat deactivate succeeded, timer id={}", deactivateRepeatTimerId);
-                                deactivateRepeatTimerId = null;
-                            },
-                            fail -> {
-                                deactivateRepeatTimerId = null;
-                                logger.error("repeat deactivate failed: {}", fail.getMessage());
-                            }
-                    );
+    final Consumer<Long> deactivateRepeatTimerHandler = (l) -> {
+        long timerId = deactivateRepeatTimerId;
+        deactivateRepeatTimerId = null;
+        mpd.send(MPD_DEACTIVATE_REPEAT_MODE)
+                .subscribe().with(
+                        response -> logger.debug("Repeat deactivate succeeded, timer id={}", timerId),
+                        fail -> logger.error("Repeat deactivate failed, timer id={}: {}", timerId, fail.getMessage())
+                );
+    };
 
 
     /**
@@ -131,6 +136,9 @@ public class RepeatTimer {
                 deactivateRepeatTimerId, LocalTime.now().plus(repeatModeDeactivateMark, ChronoUnit.MILLIS));
     }
 
+    /**
+     * cancel timers (if any) and send MPD commands to deactivate repeat mode.
+     */
     public void stop() {
         Arrays.stream(new Long[]{activateRepeatTimerId, deactivateRepeatTimerId})
                 .filter(Objects::nonNull)
@@ -138,37 +146,9 @@ public class RepeatTimer {
         activateRepeatTimerId = null;
         deactivateRepeatTimerId = null;
 
-        deactivateRepeatMode().subscribe().with(
-                response -> {
-                },
-                fail -> logger.error("MPD error when stopping repeat mode: {}", fail.getMessage())
+        mpd.send(MPD_DEACTIVATE_REPEAT_MODE).subscribe().with(
+                response -> logger.info("MPD has successfully deactivated repeat mode."),
+                fail -> logger.error("MPD error when deactivating repeat mode: {}", fail.getMessage())
         );
     }
-
-
-    Uni<Void> activateRepeatMode() {
-        return linuxMPC.mpc(activateRepeatMode)
-                .onItem().transformToUni(response -> {
-                    if (!MpdResponse.isOk(response)) {
-                        MpdResponse.Ack ack = MpdResponse.getAck(response);
-                        return Uni.createFrom()
-                                .failure(() -> new MpdCommandException(ack));
-                    }
-                    return Uni.createFrom().nullItem();
-                });
-    }
-
-    Uni<Void> deactivateRepeatMode() {
-        return linuxMPC.mpc(deactivateRepeatMode)
-                .onItem().transformToUni(response -> {
-                            if (!MpdResponse.isOk((response))) {
-                                MpdResponse.Ack ack = MpdResponse.getAck(response);
-                                return Uni.createFrom()
-                                        .failure(() -> new MpdCommandException(ack));
-                            }
-                            return Uni.createFrom().nullItem();
-                        }
-                );
-    }
-
 }

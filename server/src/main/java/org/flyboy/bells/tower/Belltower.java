@@ -2,13 +2,12 @@ package org.flyboy.bells.tower;
 
 import io.smallrye.mutiny.Uni;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Layer with operations for the player.
@@ -17,30 +16,43 @@ import java.util.List;
  */
 @ApplicationScoped
 public class Belltower {
-    private static final Logger logger = LoggerFactory.getLogger(Belltower.class);
 
     // in seconds
     @ConfigProperty(name = "belltower.peal.duration.default", defaultValue = "60")
     long defaultPealDuration;
 
-    @Inject
-    LinuxMPC linuxMPC;
+    static final List<String> MPD_PRE_PLAY_STATUS = List.of("lsinfo", "status");
     @Inject
     RepeatTimer repeatTimer;
 
     private Boolean isLocked = false;
+    @Inject
+    Mpd mpd;
+
+    /**
+     * creates list of commands to play the named bell songs.
+     *
+     * @param songs to play
+     * @return list of MPD commands.
+     */
+    static List<String> mpdRingSongCommands(List<MpdMetadata.Song> songs) {
+        List<String> adds = songs.stream().map(s -> "add " + s.filename()).toList();
+        return Stream
+                .of(List.of("clear"), adds, List.of("play", "status"))
+                .flatMap(Collection::stream)
+                .toList();
+    }
 
     /**
      * returns Uni which returns simple status of this player.
      *
      * @return status
-     * @see LinuxMPC
+     * @see Mpd
      */
     public Uni<BelltowerStatus> getStatus() {
-        return linuxMPC.mpc("status")
+        return mpd.send("status")
                 .onItem().transform(this::getBelltowerStatus);
     }
-
 
     /*
     1) check locked, get status and list of songs from mpd
@@ -60,11 +72,11 @@ public class Belltower {
 
                 .onItem().transformToUni(n -> {
                     // get list of songs and status of the player
-                    return linuxMPC.mpc("lsinfo", "status");
+                    return mpd.send(MPD_PRE_PLAY_STATUS);
                 })
 
                 .onItem().transform(response -> {
-                    // not available if already busy playing a bell sample
+                    // belltower is not available if already busy playing a bell sample
                     String state = MpdResponse.getField(response, "state")
                             .orElseThrow(() -> new IllegalArgumentException("state is not returned"));
 
@@ -74,57 +86,47 @@ public class Belltower {
                     return response;
                 })
 
-                .onItem().transform(response -> {
-
-                    List<String> commands = new ArrayList<>();
-                    commands.add("clear");
-                    commands.add("crossfade 0");
-
+                .onItem().transformToUni(response -> {
                     MpdMetadata mpdMetadata = new MpdMetadata(response);
                     List<MpdMetadata.Song> songs = mpdMetadata.findMatch(name);
                     switch (songs.size()) {
-                        case 1 -> commands.add("add " + songs.get(0).filename());
+                        case 1 -> {
+
+                            final List<String> mpdCommands = mpdRingSongCommands(songs);
+                            return mpd.send(mpdCommands);
+                        }
+
                         case 3 -> {
-                            commands.add("add " + songs.get(0).filename());
-                            commands.add("add " + songs.get(1).filename());
-                            commands.add("add " + songs.get(2).filename());
-                            repeatTimer.start(songs, defaultPealDuration * 1000);
+                            List<String> mpdCommands = mpdRingSongCommands(songs);
+                            return mpd.send(mpdCommands)
+                                    .onItem().transform(r -> {
+                                        // skipped if error when starting the player (per Mutiny behavior)
+                                        repeatTimer.start(songs, defaultPealDuration * 1000);
+                                        return r;
+                                    });
                         }
                         default -> {
-                            logger.warn("sample not found, name={}, songs={}", name, songs);
-                            throw new BelltowerSampleNotFoundException(name);
+                            return Uni.createFrom().failure(() -> new BelltowerSampleNotFoundException(name));
                         }
                     }
-
-                    commands.add("play");
-                    commands.add("status");
-                    return commands;
                 })
+                .onItem().transform(this::getBelltowerStatus)
 
-                .onItem().transformToUni(commands -> {
-                    logger.debug("sending mpc commands: {}", commands);
-                    return linuxMPC.mpc(commands);
-                })
+                .onFailure(MpdCommandException.class).transform(thrown -> {
+                    // Note: this error implies the repeat timer is not running.
 
-                .onItem().transform(response -> {
-                    // check if success
-                    if (!isOk(response)) {
-                        repeatTimer.stop();
-
-                        MpdResponse.Ack ack = ack(response);
-                        final int sampleNotFoundError = 50;
-
-                        // if error indicates the named sample is unknown
-                        if (ack.getError() == sampleNotFoundError) {
-                            throw new BelltowerSampleNotFoundException(name);
-                        } else {
-                            throw new BelltowerException("Failed to play sample, error="
-                                    + ack.getError() + ", text=" + ack.getMessageText());
-                        }
+                    MpdResponse.Ack ack = ((MpdCommandException) thrown).getAck();
+                    final int sampleNotFoundError = 50;
+                    if (ack.getError() == sampleNotFoundError) {
+                        return new BelltowerSampleNotFoundException(name);
                     } else {
-                        return getBelltowerStatus(response);
+                        return new BelltowerException("error="
+                                + ack.getError() + ", text=" + ack.getMessageText());
                     }
-                });
+                })
+
+                ;
+
     }
 
     public void lock() {
@@ -139,13 +141,5 @@ public class Belltower {
         String state = MpdResponse.getField(result, "state").orElse("unknown");
 
         return new BelltowerStatus(isLocked, state);
-    }
-
-    private boolean isOk(List<String> result) {
-        return MpdResponse.isOk(result);
-    }
-
-    private MpdResponse.Ack ack(List<String> result) {
-        return MpdResponse.getAck(result);
     }
 }

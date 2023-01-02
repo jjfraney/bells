@@ -23,12 +23,12 @@ public class MpdResourceTest {
 
     @SuppressWarnings("unused")
     @InjectMock
-    LinuxMPC linuxMPC;
+    Mpd mpd;
 
 
     @Test
     public void testNoConnection() {
-        Mockito.when(linuxMPC.mpc(ArgumentMatchers.any(String.class)))
+        Mockito.when(mpd.send(ArgumentMatchers.any(String.class)))
                 .thenAnswer(invocation -> { throw new ConnectException("Connection refused: localhost/127.0.0.1:6600"); });
         given()
                 .when().get("/mpd?cmd=status")
@@ -39,7 +39,7 @@ public class MpdResourceTest {
     public void testStringCommand() {
         List<String> mpcResult = List.of("repeatMode=off", "volume=10");
 
-        Mockito.when(linuxMPC.mpc(ArgumentMatchers.any(String.class)))
+        Mockito.when(mpd.send(ArgumentMatchers.any(String.class)))
                 .thenReturn(Uni.createFrom().item(mpcResult));
 
         JsonArrayBuilder builder = Json.createArrayBuilder();

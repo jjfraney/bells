@@ -11,8 +11,6 @@ import org.jboss.logging.Logger;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.net.ConnectException;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -25,10 +23,10 @@ import java.util.stream.Collectors;
  * @see <a href="https://mpd.readthedocs.io/en/latest/index.html">MPD Documentation</a>
  */
 @ApplicationScoped
-public class LinuxMPC {
+public class Mpd {
 
 
-    private static final Logger logger = Logger.getLogger(LinuxMPC.class);
+    private static final Logger logger = Logger.getLogger(Mpd.class);
 
     @Inject
     NetClient netClient;
@@ -48,7 +46,7 @@ public class LinuxMPC {
      * @return lines of the response - end of line removed on each.
      * @see <a href="https://mpd.readthedocs.io/en/latest/index.html">MPD Documentation</a>
      */
-    public Uni<List<String>> mpc(String cmd) {
+    public Uni<List<String>> send(String cmd) {
         return netClient.connect(mpdPort, mpdHost)
                 .onFailure(ConnectException.class).invoke(r -> logger.error("Unable to connect to MPD service: " + r.getMessage()))
                 .onItem().invoke(netSocket -> {
@@ -70,35 +68,38 @@ public class LinuxMPC {
                 .onItem().transform(Buffer::toString)
                 .flatMap(s -> Multi.createFrom().items(s.split("\n")))
                 .collect().with(Collectors.toList())
+                .onItem().transformToUni(response -> {
+
+                    // check for command failure
+                    if (!MpdResponse.isOk((response))) {
+                        MpdResponse.Ack ack = MpdResponse.getAck(response);
+                        return Uni.createFrom()
+                                .failure(() -> new MpdCommandException(ack));
+                    }
+                    return Uni.createFrom().item(() -> response);
+                })
                 ;
     }
 
     /**
-     * sends a command list using MPD 'command_begin_ok', 'command_end'.
+     * Build Uni to send a command list using MPD 'command_begin_ok', 'command_end'.
      *
-     * @param first command
-     * @param last  commands as variable args
+     * @param commands list of MPD commands to send.
      * @return list of response lines isolated by 'list_OK' (per MPD protocol)
      */
-    public Uni<List<String>> mpc(String first, String... last) {
-        List<String> commands = new ArrayList<>();
-        commands.add(first);
-        commands.addAll(Arrays.asList(last));
-        return mpc(commands);
-    }
 
-    public Uni<List<String>> mpc(List<String> commands) {
+    public Uni<List<String>> send(List<String> commands) {
         Objects.requireNonNull(commands);
         commands.forEach(Objects::requireNonNull);
-        if (commands.size() <= 0) {
-            throw new IllegalArgumentException("one or more commands expected");
+        if (commands.size() == 0) {
+            logger.warn("sending empty command list");
         }
 
         String wrappedCommands =
                 "command_list_ok_begin\n"
                         + String.join("\n", commands)
                         + "\ncommand_list_end";
-        return mpc(wrappedCommands);
+        return send(wrappedCommands);
 
     }
 }

@@ -326,8 +326,13 @@ before the media player can successfully play the sample.
 # MPD Media Player configuration
 
 - disable state file, or use 'restore_paused yes'
-When MPD restarts after unexpected outage, it must be quiet.
-After restart, MPD should await next commands from belltower before playing anything.
+  When MPD restarts after unexpected outage, it must be quiet.
+  After restart, MPD should await next commands from belltower before playing anything.
+- crossfade, or xfade, should be set to 0.
+  TODO: confirm MPD default value of crossfade is 0.
+- 
+  If crossfade is not zero, the variable bell samples will overlap during playback.
+  At crossfade 0, bell samples playback will not overlap.
 
 ## Running the application in dev mode
 
