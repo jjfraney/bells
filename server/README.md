@@ -323,6 +323,12 @@ before the media player can successfully play the sample.
 
 ```
 
+# MPD Media Player configuration
+
+- disable state file, or use 'restore_paused yes'
+When MPD restarts after unexpected outage, it must be quiet.
+After restart, MPD should await next commands from belltower before playing anything.
+
 ## Running the application in dev mode
 
 You can run your application in dev mode that enables live coding using:

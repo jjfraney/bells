@@ -1,5 +1,6 @@
 package org.flyboy.bells.tower;
 
+import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.Vertx;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,52 +32,58 @@ import java.util.function.Consumer;
 public class RepeatTimer {
     private final Logger logger = LoggerFactory.getLogger(RepeatTimer.class);
 
-    /**
-     * Timer controlling activation of repeat mode.
-     */
-    Long onRepeatTimerId;
+    final List<String> activateRepeatMode = List.of("repeat 1", "single 1");
+    final List<String> deactivateRepeatMode = List.of("repeat 0", "single 0");
 
-    /**
-     * Timer controlling deactivation of repeat mode.
-     */
-    Long offRepeatTimerId;
     RepeatMode repeatMode = RepeatMode.INACTIVE;
     @Inject
     Vertx vertx;
     @Inject
     LinuxMPC linuxMPC;
     /**
+     * Timer controlling activation of repeat mode.
+     */
+    Long activateRepeatTimerId;
+    /**
      * a timer handler that would activate repeat mode,
      */
-    final Consumer<Long> activateRepeat = (l) -> linuxMPC.mpc("repeat 1", "single 1")
-            .subscribe().with(
-                    response -> {
-                        repeatMode = RepeatMode.ACTIVE;
-                        logger.debug("repeat activate succeeded, timer id={}", onRepeatTimerId);
-                        onRepeatTimerId = null;
-                    },
-                    fail -> {
-                        onRepeatTimerId = null;
-                        repeatMode = RepeatMode.UNKNOWN;
-                        logger.error("repeat activate failed: {}", fail.getMessage());
-                    });
+    final Consumer<Long> activateRepeatTimerHandler = (l) ->
+            activateRepeatMode()
+                    .subscribe().with(
+                            response -> {
+                                repeatMode = RepeatMode.ACTIVE;
+                                logger.debug("repeat activate succeeded, timer id={}", activateRepeatTimerId);
+                                activateRepeatTimerId = null;
+                            },
+                            fail -> {
+                                activateRepeatTimerId = null;
+                                repeatMode = RepeatMode.UNKNOWN;
+                                logger.error("repeat activate failed: {}", fail.getMessage());
+                            });
+    /**
+     * Timer controlling deactivation of repeat mode.
+     */
+    Long deactivateRepeatTimerId;
     /**
      * A timer handler that would deactivate repeat mode.
      */
-    final Consumer<Long> deactivateRepeat = (l) ->
-            linuxMPC.mpc("repeat 0", "single 0")
+    final Consumer<Long> deactivateRepeatTimerHandler = (l) ->
+            deactivateRepeatMode()
                     .subscribe().with(
                             response -> {
                                 repeatMode = RepeatMode.INACTIVE;
-                                logger.debug("repeat deactivate succeeded, timer id={}", offRepeatTimerId);
-                                offRepeatTimerId = null;
+                                logger.debug("repeat deactivate succeeded, timer id={}", deactivateRepeatTimerId);
+                                deactivateRepeatTimerId = null;
                             },
                             fail -> {
-                                offRepeatTimerId = null;
+                                deactivateRepeatTimerId = null;
                                 repeatMode = RepeatMode.UNKNOWN;
                                 logger.error("repeat deactivate failed: {}", fail.getMessage());
                             }
                     );
+
+
+    enum RepeatMode {UNKNOWN, ACTIVE, INACTIVE}
 
     /**
      * Calculate when to activate repeat mode and for how long.
@@ -86,7 +93,7 @@ public class RepeatTimer {
      * @param playbackDuration to play the repeatable song in milliseconds
      */
     public void start(List<MpdMetadata.Song> songs, long playbackDuration) {
-        if (onRepeatTimerId != null || offRepeatTimerId != null) {
+        if (activateRepeatTimerId != null || deactivateRepeatTimerId != null) {
             throw new IllegalStateException("Timer is already active.");
         }
 
@@ -119,38 +126,60 @@ public class RepeatTimer {
 
         // activate repeat mode after some duration of inactive repeat mode
         long repeatModeActivateMark = durationInactiveRepeatMode + 1000;
-        onRepeatTimerId = vertx.setTimer(repeatModeActivateMark, activateRepeat);
+        activateRepeatTimerId = vertx.setTimer(repeatModeActivateMark, activateRepeatTimerHandler);
         logger.debug("set 'activate repeat mode' timer, timer id={}, fires at {}",
-                onRepeatTimerId, LocalTime.now().plus(repeatModeActivateMark, ChronoUnit.MILLIS));
+                activateRepeatTimerId, LocalTime.now().plus(repeatModeActivateMark, ChronoUnit.MILLIS));
 
         // deactivate repeat mode after some duration of active repeat mode.
         // one second before the end of the last iteration of the middle segment
         long repeatModeDeactivateMark = beg.duration() + durationActiveRepeatMode - 1000;
-        offRepeatTimerId = vertx.setTimer(repeatModeDeactivateMark, deactivateRepeat);
+        deactivateRepeatTimerId = vertx.setTimer(repeatModeDeactivateMark, deactivateRepeatTimerHandler);
         logger.debug("set 'deactivate repeat mode' timer, timer id={}, fires at {}",
-                offRepeatTimerId, LocalTime.now().plus(repeatModeDeactivateMark, ChronoUnit.MILLIS));
+                deactivateRepeatTimerId, LocalTime.now().plus(repeatModeDeactivateMark, ChronoUnit.MILLIS));
     }
 
     public void stop() {
-        Arrays.stream(new Long[]{onRepeatTimerId, offRepeatTimerId})
+        Arrays.stream(new Long[]{activateRepeatTimerId, deactivateRepeatTimerId})
                 .filter(Objects::nonNull)
                 .forEach(id -> vertx.cancelTimer(id));
-        onRepeatTimerId = null;
-        offRepeatTimerId = null;
+        activateRepeatTimerId = null;
+        deactivateRepeatTimerId = null;
 
         if (repeatMode != RepeatMode.INACTIVE) {
-            linuxMPC.mpc("repeat 0").subscribe().with(
+            deactivateRepeatMode().subscribe().with(
                     result -> repeatMode = RepeatMode.INACTIVE,
                     fail -> {
                         repeatMode = RepeatMode.UNKNOWN;
-                        logger.error("Unable to deactivate repeat mode.", fail);
+                        logger.error("MPD error when stopping repeat mode: {}", fail.getMessage());
                     }
             );
         }
     }
 
+    Uni<Void> activateRepeatMode() {
+        return linuxMPC.mpc(activateRepeatMode)
+                .onItem().transformToUni(response -> {
+                            if (!MpdResponse.isOk(response)) {
+                                MpdResponse.Ack ack = MpdResponse.getAck(response);
+                                return Uni.createFrom()
+                                        .failure(() -> new MpdCommandException(ack));
+                            }
+                            return Uni.createFrom().nullItem();
+                        }
+                );
+    }
 
-    enum RepeatMode {UNKNOWN, ACTIVE, INACTIVE}
-
+    Uni<Void> deactivateRepeatMode() {
+        return linuxMPC.mpc(deactivateRepeatMode)
+                .onItem().transformToUni(response -> {
+                            if (!MpdResponse.isOk((response))) {
+                                MpdResponse.Ack ack = MpdResponse.getAck(response);
+                                return Uni.createFrom()
+                                        .failure(() -> new MpdCommandException(ack));
+                            }
+                            return Uni.createFrom().nullItem();
+                        }
+                );
+    }
 
 }
