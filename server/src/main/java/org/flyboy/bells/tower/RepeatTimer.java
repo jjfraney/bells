@@ -35,7 +35,6 @@ public class RepeatTimer {
     final List<String> activateRepeatMode = List.of("repeat 1", "single 1");
     final List<String> deactivateRepeatMode = List.of("repeat 0", "single 0");
 
-    RepeatMode repeatMode = RepeatMode.INACTIVE;
     @Inject
     Vertx vertx;
     @Inject
@@ -51,13 +50,11 @@ public class RepeatTimer {
             activateRepeatMode()
                     .subscribe().with(
                             response -> {
-                                repeatMode = RepeatMode.ACTIVE;
                                 logger.debug("repeat activate succeeded, timer id={}", activateRepeatTimerId);
                                 activateRepeatTimerId = null;
                             },
                             fail -> {
                                 activateRepeatTimerId = null;
-                                repeatMode = RepeatMode.UNKNOWN;
                                 logger.error("repeat activate failed: {}", fail.getMessage());
                             });
     /**
@@ -71,19 +68,15 @@ public class RepeatTimer {
             deactivateRepeatMode()
                     .subscribe().with(
                             response -> {
-                                repeatMode = RepeatMode.INACTIVE;
                                 logger.debug("repeat deactivate succeeded, timer id={}", deactivateRepeatTimerId);
                                 deactivateRepeatTimerId = null;
                             },
                             fail -> {
                                 deactivateRepeatTimerId = null;
-                                repeatMode = RepeatMode.UNKNOWN;
                                 logger.error("repeat deactivate failed: {}", fail.getMessage());
                             }
                     );
 
-
-    enum RepeatMode {UNKNOWN, ACTIVE, INACTIVE}
 
     /**
      * Calculate when to activate repeat mode and for how long.
@@ -145,28 +138,24 @@ public class RepeatTimer {
         activateRepeatTimerId = null;
         deactivateRepeatTimerId = null;
 
-        if (repeatMode != RepeatMode.INACTIVE) {
-            deactivateRepeatMode().subscribe().with(
-                    result -> repeatMode = RepeatMode.INACTIVE,
-                    fail -> {
-                        repeatMode = RepeatMode.UNKNOWN;
-                        logger.error("MPD error when stopping repeat mode: {}", fail.getMessage());
-                    }
-            );
-        }
+        deactivateRepeatMode().subscribe().with(
+                response -> {
+                },
+                fail -> logger.error("MPD error when stopping repeat mode: {}", fail.getMessage())
+        );
     }
+
 
     Uni<Void> activateRepeatMode() {
         return linuxMPC.mpc(activateRepeatMode)
                 .onItem().transformToUni(response -> {
-                            if (!MpdResponse.isOk(response)) {
-                                MpdResponse.Ack ack = MpdResponse.getAck(response);
-                                return Uni.createFrom()
-                                        .failure(() -> new MpdCommandException(ack));
-                            }
-                            return Uni.createFrom().nullItem();
-                        }
-                );
+                    if (!MpdResponse.isOk(response)) {
+                        MpdResponse.Ack ack = MpdResponse.getAck(response);
+                        return Uni.createFrom()
+                                .failure(() -> new MpdCommandException(ack));
+                    }
+                    return Uni.createFrom().nullItem();
+                });
     }
 
     Uni<Void> deactivateRepeatMode() {

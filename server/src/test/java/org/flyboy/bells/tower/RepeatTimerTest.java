@@ -35,7 +35,6 @@ public class RepeatTimerTest {
 
     @Test
     public void testStopTimerWhenNoTimerSet() {
-        repeatTimer.repeatMode = RepeatTimer.RepeatMode.INACTIVE;
 
         repeatTimer.stop();
 
@@ -46,7 +45,6 @@ public class RepeatTimerTest {
     @Test
     public void testStopWhenNotRepeating() {
         repeatTimer.activateRepeatTimerId = 43L;
-        repeatTimer.repeatMode = RepeatTimer.RepeatMode.INACTIVE;
 
         RepeatTimer spy = Mockito.spy(repeatTimer);
         spy.stop();
@@ -62,7 +60,6 @@ public class RepeatTimerTest {
     @Test
     public void testStopWhenRepeating() {
         repeatTimer.deactivateRepeatTimerId = 19L;
-        repeatTimer.repeatMode = RepeatTimer.RepeatMode.ACTIVE;
 
         RepeatTimer spy = Mockito.spy(repeatTimer);
         spy.stop();
@@ -78,7 +75,6 @@ public class RepeatTimerTest {
     @Test
     public void testInvalidState() {
         repeatTimer.deactivateRepeatTimerId = 12L;
-        repeatTimer.repeatMode = RepeatTimer.RepeatMode.INACTIVE;
 
         Assertions.assertThrows(IllegalStateException.class, () -> repeatTimer.start(songs, 90L));
     }
@@ -99,10 +95,8 @@ public class RepeatTimerTest {
         Mockito.when(repeatTimer.linuxMPC.mpc(repeatTimer.activateRepeatMode)).thenReturn(Uni.createFrom().item(response));
 
         repeatTimer.activateRepeatTimerId = 10L;
-        repeatTimer.repeatMode = RepeatTimer.RepeatMode.INACTIVE;
         repeatTimer.activateRepeatTimerHandler.accept(repeatTimer.activateRepeatTimerId);
 
-        Assertions.assertEquals(RepeatTimer.RepeatMode.ACTIVE, repeatTimer.repeatMode);
         Assertions.assertNull(repeatTimer.activateRepeatTimerId);
     }
 
@@ -113,10 +107,8 @@ public class RepeatTimerTest {
                 .thenReturn(Uni.createFrom().item(response).onItem().failWith(() -> new BelltowerException("mock")));
 
         repeatTimer.activateRepeatTimerId = 10L;
-        repeatTimer.repeatMode = RepeatTimer.RepeatMode.INACTIVE;
         repeatTimer.activateRepeatTimerHandler.accept(repeatTimer.activateRepeatTimerId);
 
-        Assertions.assertEquals(RepeatTimer.RepeatMode.UNKNOWN, repeatTimer.repeatMode);
         Assertions.assertNull(repeatTimer.activateRepeatTimerId);
     }
 
@@ -126,10 +118,8 @@ public class RepeatTimerTest {
         Mockito.when(repeatTimer.linuxMPC.mpc(repeatTimer.deactivateRepeatMode)).thenReturn(Uni.createFrom().item(response));
 
         repeatTimer.deactivateRepeatTimerId = 10L;
-        repeatTimer.repeatMode = RepeatTimer.RepeatMode.ACTIVE;
         repeatTimer.deactivateRepeatTimerHandler.accept(repeatTimer.deactivateRepeatTimerId);
 
-        Assertions.assertEquals(RepeatTimer.RepeatMode.INACTIVE, repeatTimer.repeatMode);
         Assertions.assertNull(repeatTimer.deactivateRepeatTimerId);
     }
 
@@ -140,10 +130,8 @@ public class RepeatTimerTest {
                 .thenReturn(Uni.createFrom().item(response).onItem().failWith(() -> new BelltowerException("mock")));
 
         repeatTimer.activateRepeatTimerId = 10L;
-        repeatTimer.repeatMode = RepeatTimer.RepeatMode.ACTIVE;
         repeatTimer.deactivateRepeatTimerHandler.accept(repeatTimer.activateRepeatTimerId);
 
-        Assertions.assertEquals(RepeatTimer.RepeatMode.UNKNOWN, repeatTimer.repeatMode);
         Assertions.assertNull(repeatTimer.deactivateRepeatTimerId);
     }
 }
