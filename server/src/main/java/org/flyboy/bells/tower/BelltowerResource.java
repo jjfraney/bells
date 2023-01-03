@@ -4,9 +4,12 @@ import io.smallrye.mutiny.Uni;
 import org.jboss.resteasy.reactive.server.ServerExceptionMapper;
 
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -20,39 +23,60 @@ import java.net.ConnectException;
  * @author John J. Franey
  */
 @Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 @Path("/belltower")
 public class BelltowerResource {
+    private static final String VACANT = "__vacant__";
+
     @Inject
     Belltower belltower;
 
     @GET
-    @Path("/status")
     public Uni<BelltowerStatus> getStatus() {
         return belltower.getStatus();
     }
 
-    @SuppressWarnings("QsUndeclaredPathMimeTypesInspection")
-    @POST
+    @PUT
     @Path("/ring")
-    public Uni<BelltowerStatus> ring(@QueryParam("name") String name) {
-        return belltower.ring(name);
+    public Uni<BelltowerStatus> startPattern(@DefaultValue(VACANT) @QueryParam("pattern") String pattern) {
+        return Uni.createFrom().nullItem()
+                .onItem().transformToUni(n -> {
+                    if (pattern.equals(VACANT)) {
+                        return Uni.createFrom().failure(new BadRequestException("'pattern' parameter is required and missing."));
+                    } else {
+                        return belltower.ring(pattern);
+                    }
+                });
+
+    }
+
+
+    @DELETE
+    @Path("/ring")
+    public Uni<BelltowerStatus> ringStop() {
+        return belltower.stop();
     }
 
     @DELETE
     @Path("/lock")
     public Uni<BelltowerStatus> unlock() {
-        belltower.unlock();
-        return belltower.getStatus();
+        return belltower.unlock();
     }
 
-    @SuppressWarnings("QsUndeclaredPathMimeTypesInspection")
-    @POST
+    //@PUT
+    @PUT
     @Path("/lock")
     public Uni<BelltowerStatus> lock() {
-        belltower.lock();
-        return belltower.getStatus();
+        return belltower.lock();
     }
 
+    @SuppressWarnings("unused")
+    @ServerExceptionMapper
+    public Response mapException(BadRequestException e) {
+        ErrorResponseBody body = new ErrorResponseBody();
+        body.setDetails(e.getMessage());
+        return Response.status(Response.Status.BAD_REQUEST).entity(body).build();
+    }
     @SuppressWarnings("unused")
     @ServerExceptionMapper
     public Response mapException(ConnectException e) {
@@ -71,7 +95,7 @@ public class BelltowerResource {
 
     @SuppressWarnings("unused")
     @ServerExceptionMapper
-    public Response mapException(BelltowerSampleNotFoundException e) {
+    public Response mapException(BelltowerPatternNotFoundException e) {
         ErrorResponseBody body = new ErrorResponseBody();
         body.setDetails(e.getMessage());
         return Response.status(Response.Status.NOT_FOUND).entity(body).build();

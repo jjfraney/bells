@@ -78,8 +78,7 @@ class BelltowerTest {
 
         BelltowerStatus expected = new BelltowerStatus(true, "stop");
 
-        belltower.lock();
-        Uni<BelltowerStatus> actual = belltower.getStatus();
+        Uni<BelltowerStatus> actual = belltower.lock();
 
         actual.subscribe().withSubscriber(UniAssertSubscriber.create())
                 .assertCompleted().assertItem(expected);
@@ -100,7 +99,7 @@ class BelltowerTest {
     @Test
     public void testRingWhenLocked() {
         // when locked, resource returns http status code LOCKED
-        belltower.lock();
+        belltower.lock().subscribe().withSubscriber(UniAssertSubscriber.create()).assertCompleted();
 
         Uni<BelltowerStatus> actual = belltower.ring("call-to-mass");
         actual.subscribe().withSubscriber(UniAssertSubscriber.create())
@@ -203,7 +202,7 @@ class BelltowerTest {
 
         Uni<BelltowerStatus> actual = belltower.ring(sampleName);
         actual.subscribe().withSubscriber(UniAssertSubscriber.create())
-                .assertFailed().assertFailedWith(BelltowerSampleNotFoundException.class);
+                .assertFailed().assertFailedWith(BelltowerPatternNotFoundException.class);
 
 
     }
@@ -240,7 +239,7 @@ class BelltowerTest {
 
         Uni<BelltowerStatus> actual = belltower.ring(sampleName);
         actual.subscribe().withSubscriber(UniAssertSubscriber.create())
-                .assertFailed().assertFailedWith(BelltowerSampleNotFoundException.class);
+                .assertFailed().assertFailedWith(BelltowerPatternNotFoundException.class);
 
     }
 
