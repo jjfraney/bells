@@ -1,6 +1,7 @@
 package org.flyboy.bells.tower;
 
 import io.smallrye.mutiny.Uni;
+import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.jboss.resteasy.reactive.server.ServerExceptionMapper;
 
 import javax.inject.Inject;
@@ -22,6 +23,7 @@ import java.net.ConnectException;
  *
  * @author John J. Franey
  */
+
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Path("/belltower")
@@ -32,12 +34,14 @@ public class BelltowerResource {
     Belltower belltower;
 
     @GET
+    @Operation(description = "Return belltower status.")
     public Uni<BelltowerStatus> getStatus() {
         return belltower.getStatus();
     }
 
     @PUT
     @Path("/ring")
+    @Operation(description = "Ring bells specified by the named pattern.")
     public Uni<BelltowerStatus> startPattern(@DefaultValue(VACANT) @QueryParam("pattern") String pattern) {
         return Uni.createFrom().nullItem()
                 .onItem().transformToUni(n -> {
@@ -53,12 +57,14 @@ public class BelltowerResource {
 
     @DELETE
     @Path("/ring")
+    @Operation(description = "Stop ringing the bells.  Some patterns cannot be stopped and must ring through.")
     public Uni<BelltowerStatus> ringStop() {
         return belltower.stop();
     }
 
     @DELETE
     @Path("/lock")
+    @Operation(description = "Release the lock.  Requests to ring the bells will be ignored when locked.")
     public Uni<BelltowerStatus> unlock() {
         return belltower.unlock();
     }
@@ -66,6 +72,7 @@ public class BelltowerResource {
     //@PUT
     @PUT
     @Path("/lock")
+    @Operation(description = "Engage the lock.  Requests to ring the bells will be ignored when locked.")
     public Uni<BelltowerStatus> lock() {
         return belltower.lock();
     }
