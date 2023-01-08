@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.text.Text?>
+<AnchorPane id="AnchorPane" prefHeight="251.0" prefWidth="496.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.flyboy.bells.ui.javafx.scene.RingScene">
+    <Button fx:id="btnRing" layoutX="308.0" layoutY="73.0" mnemonicParsing="false" text="Ring" onAction="#ringBell"/>
+   <Button fx:id="btnStatus" layoutX="89.0" layoutY="213.0" mnemonicParsing="false" text="Status" onAction="#getStatus"/>
+   <Text fx:id="txtState" layoutX="185.0" layoutY="213.0" />
+   <ListView fx:id="listView" layoutX="77.0" layoutY="11.0" prefHeight="148.0" prefWidth="200.0" />
+</AnchorPane>
