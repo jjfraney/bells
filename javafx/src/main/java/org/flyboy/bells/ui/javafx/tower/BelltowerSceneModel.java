@@ -1,11 +1,10 @@
-package org.flyboy.bells.ui.javafx.scene;
+package org.flyboy.bells.ui.javafx.tower;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.flyboy.bells.ui.javafx.tower.Belltower;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,9 +18,9 @@ import org.slf4j.LoggerFactory;
  * @author John J. Franey
  */
 @ApplicationScoped
-public class RingSceneModel {
+public class BelltowerSceneModel {
 
-  private static Logger logger = LoggerFactory.getLogger(RingSceneModel.class);
+  private static Logger logger = LoggerFactory.getLogger(BelltowerSceneModel.class);
 
   /**
    * An Observable property to obtain updates to belltower status.

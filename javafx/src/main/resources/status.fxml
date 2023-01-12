@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="251.0" prefWidth="496.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.flyboy.bells.ui.javafx.scene.StatusScene">
+   <Button fx:id="btnStatus" layoutX="83.0" layoutY="196.0" mnemonicParsing="false" onAction="#getStatus" text="Status" />
+   <Text fx:id="txtState" layoutX="185.0" layoutY="213.0" />
+   <ListView fx:id="lstCalendar" layoutX="224.0" layoutY="14.0" prefHeight="148.0" prefWidth="200.0" />
+   <ButtonBar layoutX="257.0" layoutY="196.0" prefHeight="40.0" prefWidth="200.0">
+     <buttons>
+       <Button fx:id="btnBelltower" mnemonicParsing="false" text="Belltower" onAction="#switchBelltowerScene" />
+         <Button fx:id="btnCalendar" mnemonicParsing="false" text="Calendar" onAction="#switchCalendarScene" />
+     </buttons>
+   </ButtonBar>
+   <Label layoutX="113.0" layoutY="72.0" text="Calendar" />
+</AnchorPane>
