@@ -14,7 +14,7 @@
         <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
         <lombok.version>1.18.20</lombok.version>
 
-        <javafx.version>17.0.0.1</javafx.version>
+        <javafx.version>19</javafx.version>
 
         <java.version>17</java.version>
         <compiler-plugin.version>3.8.1</compiler-plugin.version>

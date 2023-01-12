@@ -27,7 +27,7 @@ This contains:
 The Status Scene includes a link to
 the calendar and control scenes.
 
-* If user is not authenticated, then this scene will pop-up the login scene
+* If user is not authenticated, then this scene will pop up the login scene
 for authentication.
 
 ## Calendar Scene
@@ -37,7 +37,7 @@ The Calendar Scene has functions to read and modify the bell calendar.
 The controls are focused on scheduling bells for a given date-time.
 Repeatable and one-time-only ringing are supported.
 
-If use is not authenticated, then this scene will pop-up the login scene
+If use is not authenticated, then this scene will pop up the login scene
 for authentication.
 
 ## Belltower Scene
@@ -45,7 +45,7 @@ for authentication.
 For more details of control of the bell tower.
 Also controls to ring a pattern and read the different patterns available
 
-If use is not authenticated, then this scene will pop-up the login scene
+If use is not authenticated, then this scene will pop up the login scene
 for authentication.
 
 ## Login Scene

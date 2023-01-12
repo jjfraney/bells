@@ -8,7 +8,7 @@ import org.flyboy.bells.ui.javafx.conf.StartupScene;
 public class App {
 
 	@Inject
-	private Scenes scenes;
+	Scenes scenes;
 
 	public void start(@Observes @StartupScene Stage stage) {
 

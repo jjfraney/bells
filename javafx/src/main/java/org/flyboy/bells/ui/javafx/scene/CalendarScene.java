@@ -18,7 +18,7 @@ public class CalendarScene {
 
   public DatePicker dtPicker;
 
-  public ListView lstCalendar;
+  public ListView<String> lstCalendar;
 
   public Button btnBack;
 

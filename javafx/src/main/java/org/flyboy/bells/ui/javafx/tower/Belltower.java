@@ -9,10 +9,11 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 /**
  * Per RestEasy/Quarkus extension, this interface
- * decribes the methods available on the belltower endpoint.
+ * describes the methods available on the belltower endpoint.
  *
  * @author John J. Franey
  */
+@SuppressWarnings("QsUndeclaredPathMimeTypesInspection")
 @Path("/belltower")
 @RegisterRestClient
 public interface Belltower {

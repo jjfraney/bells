@@ -2,6 +2,7 @@ package org.flyboy.bells.ui.javafx.scene;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Objects;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -45,14 +46,15 @@ public class Scenes {
 
   private Scene loadScene(String path) {
     URL fxml = getClass().getResource(path);
-    Parent fxmlParent = null;
+    Objects.requireNonNull(fxml);
+
+    Parent fxmlParent;
     try {
       fxmlParent = createLoader().load(fxml.openStream());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    Scene scene = new Scene(fxmlParent, 400, 200);
-    return scene;
+    return new Scene(fxmlParent, 400, 200);
   }
 
   @Inject

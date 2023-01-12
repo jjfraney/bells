@@ -9,7 +9,7 @@ import java.util.List;
 @Dependent
 public class BelltowerSongs {
 
-    List<String> songs = List.of(
+    final List<String> songs = List.of(
             "call-to-mass",
             "wedding-peal",
             "funeral-toll"

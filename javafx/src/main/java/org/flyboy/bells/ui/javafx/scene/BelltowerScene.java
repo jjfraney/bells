@@ -42,9 +42,10 @@ public class BelltowerScene implements Initializable {
     Scenes scenes;
 
     @FXML
-    public void ringBell(ActionEvent actionEvent) {
+    public void ringBell(@SuppressWarnings("unused") ActionEvent actionEvent) {
         if(listView.getSelectionModel().getSelectedIndices().size() > 0) {
-            Integer i = (Integer) listView.getSelectionModel().getSelectedIndices().stream().findFirst().get();
+            @SuppressWarnings("OptionalGetWithoutIsPresent")
+            Integer i = listView.getSelectionModel().getSelectedIndices().stream().findFirst().get();
             String song = songs.getSongs().get(i);
             belltowerSceneModel.requestRing(song);
         }
@@ -53,7 +54,7 @@ public class BelltowerScene implements Initializable {
 
 
     @FXML
-    public void getStatus(ActionEvent actionEvent) {
+    public void getStatus(@SuppressWarnings("unused") ActionEvent actionEvent) {
         belltowerSceneModel.requestStatus();
     }
 
@@ -70,4 +71,4 @@ public class BelltowerScene implements Initializable {
         Stage stage = (Stage) ((Node)event.getSource()).getScene().getWindow();
         stage.setScene(scenes.getStatus());
     }
-};
+}

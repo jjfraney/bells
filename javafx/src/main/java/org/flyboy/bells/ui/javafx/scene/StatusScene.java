@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
  */
 @Singleton
 public class StatusScene implements Initializable {
-    private Logger logger = LoggerFactory.getLogger(StatusScene.class);
+    private final Logger logger = LoggerFactory.getLogger(StatusScene.class);
 
     public Button btnBelltower;
     public Button btnCalendar;
@@ -38,7 +38,7 @@ public class StatusScene implements Initializable {
     Scenes scenes;
 
 
-    public void getStatus(ActionEvent actionEvent) {
+    public void getStatus(@SuppressWarnings("unused") ActionEvent actionEvent) {
         belltowerSceneModel.requestStatus();
     }
 
@@ -60,4 +60,4 @@ public class StatusScene implements Initializable {
         Stage stage = (Stage) ((Node)event.getSource()).getScene().getWindow();
         stage.setScene(scenes.getCalendar());
     }
-};
+}

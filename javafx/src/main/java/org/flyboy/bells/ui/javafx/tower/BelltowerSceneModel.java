@@ -20,12 +20,12 @@ import org.slf4j.LoggerFactory;
 @ApplicationScoped
 public class BelltowerSceneModel {
 
-  private static Logger logger = LoggerFactory.getLogger(BelltowerSceneModel.class);
+  private static final Logger logger = LoggerFactory.getLogger(BelltowerSceneModel.class);
 
   /**
    * An Observable property to obtain updates to belltower status.
    */
-  private StringProperty status = new SimpleStringProperty();
+  private final StringProperty status = new SimpleStringProperty();
   public StringProperty getStatusProperty() {
     return status;
   }
@@ -52,7 +52,7 @@ public class BelltowerSceneModel {
 
 
   /**
-   * Asynchronously send request to belltower endpoin to
+   * Asynchronously send request to belltower endpoint to
    * ring a bell pattern and propagate status result through
    * an observable property.
    *
