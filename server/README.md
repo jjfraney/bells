@@ -334,6 +334,71 @@ before the media player can successfully play the sample.
   If crossfade is not zero, the variable bell samples will overlap during playback.
   At crossfade 0, bell samples playback will not overlap.
 
+# OAuth2 authorization with remote calendar systems (like Google API)
+An OAuth2 authorization flow is use to get an access token.
+The access token is bell towers authorization to use remote calendar api.
+Belltower qualifies as a native app with persistent client id and secret.
+
+Belltower uses internal class 'Token Service' to obtain a token.
+If there is a stored token is not available,
+Token Service will attempt
+to obtain an access token from
+the remote OAuth2 token server.
+
+Token Service enables or activates a callback endpoint.
+Design decision pending: Sharing memory or send message from
+callback endpoint to Token Service.
+
+The next step in this OAuth2 flow is to obtain an authorization code.
+The Token Service uses java.awt.Desktop to browse to the authorization service.
+The browser 'visits' the authorization url.
+
+The authorization service will obtain authorization from the resource owner.
+The resource owner had earlier granted authorization to this client id/secret.
+
+The authorization service would return an authorization code in a redirect response (3xx).
+The response includes an url with authorization code as a query parameter.
+The url is in the Location header of the response.
+The url redirects to the callback endpoint.
+The browser visits the callback endpoint.
+
+The callback endpoint exchanges
+the authorization code for an access token (and refresh token).
+It sends the code to the remote token server
+which returns the access token and refresh token.
+
+The callback endpoint then provides the access token to the Token Service.
+The Token service stores the token,
+and returns the token back to Belltower
+which can then send it to the remote calendar api for authorized access.
+
+The Token Service may detect that the token had expired.
+It must request a refreshed access token.
+It will send a request to the remote token server to refresh the token.
+
+```mermaid
+sequenceDiagram
+  Belltower ->>+ Token Service: get access token
+  Token Service ->> Token Service: read stored token
+  alt no stored token
+  Token Service ->>- callback endpoint: start http server
+  callback endpoint ->>+ Token Service: callback uri
+  Token Service ->>+Desktop browser: browse(auth-url)
+  Desktop browser ->>- Token Service: void
+  Desktop browser ->>+ Remote Authorization server: visit auth-url
+  Remote Authorization server ->>- Desktop browser: callback uri and code
+  Desktop browser ->>+ callback endpoint: redirect to callback uri
+  callback endpoint ->>+ Remote Token server: get token
+  Remote Token server ->>- callback endpoint: access and refresh token
+  callback endpoint --> Token Service: share access token
+  else has stored token
+  Token Service ->>+ Remote Token server: refresh token
+  Remote Token server ->>- Token Service: access token
+  end
+  Token Service ->> Token Service: save stored token
+  Token Service ->>- Belltower: access token
+```
+
 ## Running the application in dev mode
 
 You can run your application in dev mode that enables live coding using:
