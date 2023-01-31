@@ -26,7 +26,7 @@ public class TokenResource {
 
     @GET
     public Uni<String> getToken() {
-        return  tokenService.getToken("20");
+        return  tokenService.getToken();
     }
 
     @SuppressWarnings("unused")
