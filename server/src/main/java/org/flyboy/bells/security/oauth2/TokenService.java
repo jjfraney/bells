@@ -20,6 +20,9 @@ public class TokenService {
     @Inject
     ServerToServerCodeFlow serverToServerCodeFlow;
 
+    @Inject
+    TokenStore tokenStore;
+
     /**
      * Obtain a new token if it is unavailable from persistent store.
      * If from persistent store and is expired, then refresh it.
@@ -28,8 +31,15 @@ public class TokenService {
      */
     public Uni<String> getToken() {
 
-        return serverToServerCodeFlow.getToken()
-                .onItem().transformToUni(t -> Uni.createFrom().item(t.accessToken()));
+        if(tokenStore.isPresent()) {
+            Tokens tokens = tokenStore.read();
+            return Uni.createFrom().item(tokens.accessToken());
+
+        } else {
+            return serverToServerCodeFlow.getToken()
+                    .onItem().invoke(t -> tokenStore.store(t))
+                    .onItem().transformToUni(t -> Uni.createFrom().item(t.accessToken()));
+        }
     }
 
 

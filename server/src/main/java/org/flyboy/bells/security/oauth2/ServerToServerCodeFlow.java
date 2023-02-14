@@ -43,7 +43,7 @@ public class ServerToServerCodeFlow {
 
     private ProofKey pkce = ProofKey.generate();
 
-    public Uni<AuthToken.Tokens> getToken() {
+    public Uni<Tokens> getToken() {
 
         // enable the callback endpoint
         return callbackEndpoint.enable()
@@ -60,7 +60,7 @@ public class ServerToServerCodeFlow {
                 ;
     }
 
-    private Uni<AuthToken.Tokens> exchange(String code) {
+    private Uni<Tokens> exchange(String code) {
         final String grantType = "authorization_code";
         final String codeVerifier = pkce.verifier();
         final String redirectUri = callbackEndpoint.getUri();
