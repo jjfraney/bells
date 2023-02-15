@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import java.net.URI;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -57,10 +58,32 @@ public class ServerToServerCodeFlow {
 
                 // exchange the code for tokens: access and refresh
                 .onItem().transformToUni(this::exchange)
+
+                .onItem().transform(t -> new Tokens(
+                    t.accessToken(),
+                    t.refreshToken(),
+                    ZonedDateTime.now().plusSeconds(t.expiresIn()),
+                    t.scope().orElse(calendarScopes)))
                 ;
     }
 
-    private Uni<Tokens> exchange(String code) {
+    public Uni<Tokens> refresh(Tokens tokens) {
+        final String grantType = "refresh_token";
+        final String scope = tokens.scope();
+        final String refreshToken = tokens.refreshToken();
+        return authToken
+                .refresh(clientId, clientSecret, grantType, refreshToken, scope)
+                .onItem().transform(t -> {
+                    // response does not contain the refresh token
+                    return new Tokens(
+                            t.accessToken(),
+                            refreshToken,
+                            ZonedDateTime.now().plusSeconds(t.expiresIn()),
+                            t.scope().orElse(calendarScopes));
+                });
+    }
+
+    private Uni<AuthToken.Tokens> exchange(String code) {
         final String grantType = "authorization_code";
         final String codeVerifier = pkce.verifier();
         final String redirectUri = callbackEndpoint.getUri();
@@ -96,4 +119,6 @@ public class ServerToServerCodeFlow {
         browser.browse(uri);
 
     }
+
+
 }

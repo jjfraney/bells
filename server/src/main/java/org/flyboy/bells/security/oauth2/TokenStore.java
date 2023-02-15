@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import javax.enterprise.context.Dependent;
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -18,6 +19,9 @@ public class TokenStore {
     @ConfigProperty(name = "belltower.google.calendar.path.storage")
     String storeDirectory;
 
+    @Inject
+    ObjectMapper objectMapper;
+
     String FILE_NAME = "token.json";
 
     public boolean isPresent() {
@@ -26,7 +30,7 @@ public class TokenStore {
 
     public void store(Tokens tokens) {
         try {
-            new ObjectMapper()
+            objectMapper
                     .writer(new DefaultPrettyPrinter())
                     .writeValue(asFile(), tokens);
         } catch (IOException e) {
@@ -36,7 +40,7 @@ public class TokenStore {
 
     public Tokens read() {
         try {
-            return new ObjectMapper()
+            return objectMapper
                     .readerFor(Tokens.class)
                     .readValue(asFile());
         } catch (IOException e) {
