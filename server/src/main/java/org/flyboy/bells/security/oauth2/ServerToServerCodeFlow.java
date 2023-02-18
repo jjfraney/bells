@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.ws.rs.ProcessingException;
 import java.net.URI;
 import java.time.ZonedDateTime;
 import java.util.Map;
@@ -25,7 +26,7 @@ public class ServerToServerCodeFlow {
 
 
     @RestClient
-    AuthToken authToken;
+    AuthorizationServer authToken;
 
     @Inject
     Browser browser;
@@ -73,6 +74,12 @@ public class ServerToServerCodeFlow {
         final String refreshToken = tokens.refreshToken();
         return authToken
                 .refresh(clientId, clientSecret, grantType, refreshToken, scope)
+
+                .onFailure(ProcessingException.class).transform(Throwable::getCause)
+                .onFailure(AuthorizationException.class).invoke(e -> {
+                    logger.error("during refresh: {}", e.getMessage());
+                })
+
                 .onItem().transform(t -> {
                     // response does not contain the refresh token
                     return new Tokens(
@@ -83,7 +90,7 @@ public class ServerToServerCodeFlow {
                 });
     }
 
-    private Uni<AuthToken.Tokens> exchange(String code) {
+    private Uni<AuthorizationResponse> exchange(String code) {
         final String grantType = "authorization_code";
         final String codeVerifier = pkce.verifier();
         final String redirectUri = callbackEndpoint.getUri();
@@ -94,7 +101,13 @@ public class ServerToServerCodeFlow {
                 codeVerifier,
                 redirectUri,
                 grantType
-        );
+                )
+
+                .onFailure(ProcessingException.class).transform(Throwable::getCause)
+                .onFailure(AuthorizationException.class).invoke(e -> {
+                    logger.error("during exchange: {}", e.getMessage());
+                })
+                ;
     }
 
     private void browseAuthUrl(CodeCallbackEndpoint.Info callbackInfo) {
@@ -119,6 +132,4 @@ public class ServerToServerCodeFlow {
         browser.browse(uri);
 
     }
-
-
 }

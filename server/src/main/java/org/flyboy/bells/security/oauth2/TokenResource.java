@@ -34,7 +34,15 @@ public class TokenResource {
     public Response mapException(AuthCodeTimeoutException e) {
         ErrorResponseBody body = new ErrorResponseBody();
         body.setDetails(e.getMessage());
-        logger.info("token resource error: details: {}, error id: {}", body.getDetails(), body.getErrorId());
+        logger.info("{}, error id: {}", body.getDetails(), body.getErrorId());
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(body).build();
+    }
+
+    @ServerExceptionMapper
+    public Response mapException(AuthorizationException e) {
+        ErrorResponseBody body = new ErrorResponseBody();
+        body.setDetails(e.getMessage());
+        logger.info("{}, error id: {}", body.getDetails(), body.getErrorId());
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(body).build();
     }
 }

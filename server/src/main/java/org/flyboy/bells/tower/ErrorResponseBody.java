@@ -25,4 +25,12 @@ public class ErrorResponseBody {
     public void setErrorId(UUID errorId) {
         this.errorId = errorId;
     }
+
+    @Override
+    public String toString() {
+        return "details: " +
+                getDetails() +
+                ", error id: " +
+                getErrorId();
+    }
 }
