@@ -65,14 +65,16 @@ to [Java Duration#parse](https://docs.oracle.com/javase/8/docs/api/java/time/Dur
 
 belltower.calendar.id - the id of the Google calendar from which scheduled events are read.
 
-belltower.calendar.path.client-secrets - path to json file which holds credentials to
-
 belltower.mpd.port - port to send mpc requests, defaults to 6600.
 
 belltower.mpd.host - host to send mpc requests, defaults to localhost.
 
 belltower.peal.duration.default - default overall duration in seconds of the
 variable bell patterns.  defaults to 60 (i.e, one minute)
+
+belltower.security.oauth2.CodeCallbackEndpoint.waitTime - the length of time the callback endpoint is active before it shutsdown waiting for callback.
+belltower.security.oauth2.CodeCallbackEndpoint.path - the path parameter of the callback endpoint.  Defaults to 'callback'.
+belltower.security.oauth2.CodeCallbackEndpoint.stateLength - the number of characters in the generated oauth2 state query parameter.  Defaults to 30.
 
 # Control surfaces
 

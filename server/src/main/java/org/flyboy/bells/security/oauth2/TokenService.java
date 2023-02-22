@@ -4,7 +4,7 @@ import io.smallrye.mutiny.Uni;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.RequestScoped;
+import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import java.time.ZonedDateTime;
 
@@ -13,7 +13,7 @@ import java.time.ZonedDateTime;
  *
  * @author John J. Franey
  */
-@RequestScoped
+@ApplicationScoped
 public class TokenService {
 
     private final static Logger logger = LoggerFactory.getLogger(TokenService.class);
@@ -66,8 +66,5 @@ public class TokenService {
                     }
                 });
     }
-
-
-
 
 }

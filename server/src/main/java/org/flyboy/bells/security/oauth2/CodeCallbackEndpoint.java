@@ -29,20 +29,20 @@ public class CodeCallbackEndpoint {
     /**
      * the wait time for the code call back
      */
-    @ConfigProperty(name = "org.flyboy.bells.security.oauth2.CodeCallbackEndpoint.waitTime", defaultValue = "PT15S")
+    @ConfigProperty(name = "belltower.security.oauth2.CodeCallbackEndpoint.waitTime", defaultValue = "PT15S")
     Duration waitTime;
 
     /**
      * length of state query parameter
      */
-    @ConfigProperty(name = "org.flyboy.bells.security.oauth2.CodeCallbackEndpoint.stateLength", defaultValue ="30")
+    @ConfigProperty(name = "belltower.security.oauth2.CodeCallbackEndpoint.stateLength", defaultValue ="30")
 
     int stateLength;
 
     /**
      * path segment of callback uri.
      */
-    @ConfigProperty(name = "org.flyboy.bells.security.oauth2.CodeCallbackEndpoint.path", defaultValue ="callback")
+    @ConfigProperty(name = "belltower.ecurity.oauth2.CodeCallbackEndpoint.path", defaultValue ="callback")
     String path;
 
     private HttpServer httpServer;
