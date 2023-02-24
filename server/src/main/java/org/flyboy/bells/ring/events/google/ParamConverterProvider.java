@@ -12,6 +12,7 @@ public class ParamConverterProvider implements javax.ws.rs.ext.ParamConverterPro
     @Override
     public <T> ParamConverter<T> getConverter(Class<T> rawType, Type genericType, Annotation[] annotations) {
         if (rawType.equals(ZonedDateTime.class)) {
+            //noinspection unchecked
             return (ParamConverter<T>) new ZonedDateTimeConverter();
         }
         return null;

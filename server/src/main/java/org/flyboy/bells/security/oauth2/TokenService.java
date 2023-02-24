@@ -1,8 +1,6 @@
 package org.flyboy.bells.security.oauth2;
 
 import io.smallrye.mutiny.Uni;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -15,8 +13,6 @@ import java.time.ZonedDateTime;
  */
 @ApplicationScoped
 public class TokenService {
-
-    private final static Logger logger = LoggerFactory.getLogger(TokenService.class);
 
     @Inject
     ServerToServerCodeFlow serverToServerCodeFlow;
@@ -32,15 +28,13 @@ public class TokenService {
      */
     public Uni<String> getToken() {
         return Uni.createFrom().item(tokenStore.isPresent())
-                .onItem().transformToUni(isStored -> {
-                    return isStored ? tokensFromStore() : newTokens();
-                })
+                .onItem().transformToUni(isStored -> isStored ? tokensFromStore() : newTokens())
                 .onItem().transform(Tokens::accessToken);
     }
 
     /**
      * get new tokens from implementation of server to server code flow.
-     * @return
+     * @return uni of {@link Tokens} containing authorization and refresh tokens.
      */
     private Uni<Tokens> newTokens() {
         return serverToServerCodeFlow.getToken()
@@ -50,7 +44,7 @@ public class TokenService {
     /**
      * read the token from storage, if still valid, return it.  Otherwise, refresh,
      * store and return the new tokens.
-     * @return
+     * @return uni of {@link Tokens} containing authorization and refresh tokens.
      */
     Uni<Tokens> tokensFromStore() {
         return Uni.createFrom().item(tokenStore.read())

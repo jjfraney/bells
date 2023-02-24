@@ -21,7 +21,7 @@ public class Browser {
     @Blocking
     public void browse(URI uri) {
         Objects.requireNonNull(uri);
-        getDeskop().ifPresent(desktop -> browse(desktop, uri));
+        getDesktop().ifPresent(desktop -> browse(desktop, uri));
     }
 
     void browse(Desktop desktop, URI uri) {
@@ -33,7 +33,7 @@ public class Browser {
         }
     }
 
-    Optional<Desktop> getDeskop() {
+    Optional<Desktop> getDesktop() {
         Optional<Desktop> result = Optional.ofNullable(null);
         try {
             if (Desktop.isDesktopSupported()) {

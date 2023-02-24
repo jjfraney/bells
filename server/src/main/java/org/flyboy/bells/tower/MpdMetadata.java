@@ -23,7 +23,7 @@ public class MpdMetadata {
     private final Pattern extensionPattern = Pattern.compile("\\.");
 
     /**
-     * @param response from mpd to command returning metatdata.
+     * @param response from mpd to command returning metadata.
      */
     MpdMetadata(List<String> response) {
 

@@ -27,6 +27,7 @@ import java.util.List;
 @RegisterProvider(GoogleCalendarLoggerFilter.class)
 @RegisterProvider(ParamConverterProvider.class)
 public interface GoogleCalendar {
+    @SuppressWarnings("unused")
     record Event(String id, DateTime start, String summary) {
         public record DateTime(
                 @JsonProperty String date,

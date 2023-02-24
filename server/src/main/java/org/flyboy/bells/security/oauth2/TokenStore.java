@@ -22,7 +22,7 @@ public class TokenStore {
     @Inject
     ObjectMapper objectMapper;
 
-    String FILE_NAME = "token.json";
+    final String FILE_NAME = "token.json";
 
     public boolean isPresent() {
         return asFile().exists();

@@ -48,7 +48,7 @@ import java.util.Optional;
  *          outside the set %x20-21 / %x23-5B / %x5D-7E.
  *
  *    error_description
- *          OPTIONAL.  Human-readable ASCII [USASCII] text providing
+ *          OPTIONAL.  Human-readable ASCII text providing
  *          additional information, used to assist the client developer in
  *          understanding the error that occurred.
  *          Values for the "error_description" parameter MUST NOT include

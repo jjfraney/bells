@@ -42,7 +42,7 @@ public class CodeCallbackEndpoint {
     /**
      * path segment of callback uri.
      */
-    @ConfigProperty(name = "belltower.ecurity.oauth2.CodeCallbackEndpoint.path", defaultValue ="callback")
+    @ConfigProperty(name = "belltower.security.oauth2.CodeCallbackEndpoint.path", defaultValue ="callback")
     String path;
 
     HttpServer httpServer;
@@ -90,8 +90,8 @@ public class CodeCallbackEndpoint {
 
     /**
      * handle the callback after authorization to get the code and emit it downstream.
-     * @param expectedState
-     * @return
+     * @param expectedState sent in authorization request and expected in callback
+     * @return a routing context for httpserver
      */
     private Consumer<RoutingContext> handler(String expectedState) {
         return rc -> {
@@ -123,8 +123,7 @@ public class CodeCallbackEndpoint {
         if(! goodState) {
             logger.warn("State has no value or is not equal to expected state.  state: {}, expected state: {}", state, expectedState);
         }
-        boolean sendCode = goodCode && goodState;
-        return sendCode;
+        return goodCode && goodState;
     }
 
 
@@ -135,9 +134,7 @@ public class CodeCallbackEndpoint {
      * @return OAuth2 authorization code
      */
     Uni<String> createCodeEmitter() {
-        Uni<String> emitter = Uni.createFrom().emitter(e -> {
-            setCodeCallback(e::complete);
-        });
+        Uni<String> emitter = Uni.createFrom().emitter(e -> setCodeCallback(e::complete));
 
         return emitter
                 .ifNoItem().after(waitTime).failWith(new AuthCodeTimeoutException(waitTime))

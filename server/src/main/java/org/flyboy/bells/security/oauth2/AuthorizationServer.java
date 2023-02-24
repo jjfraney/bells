@@ -23,7 +23,7 @@ public interface AuthorizationServer {
      * @param redirectUri - which received the OAuth2 authentication response
      * @param grantType - authorization_code
      * @return authorization response
-     * @throws AuthorizationException
+     * @throws AuthorizationException in case token service return 401 status.
      */
     @POST
     Uni<AuthorizationResponse> exchange(
@@ -44,7 +44,7 @@ public interface AuthorizationServer {
      * @param refreshToken - obtained from OAuth token service during code exchange
      * @param scope - should be same as used in original OAuth2 authentication request
      * @return authorization response
-     * @throws AuthorizationException
+     * @throws AuthorizationException in case token service returns 401 status.
      */
     @POST
     Uni<AuthorizationResponse> refresh(

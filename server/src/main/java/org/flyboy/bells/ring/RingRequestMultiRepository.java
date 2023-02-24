@@ -23,9 +23,8 @@ public class RingRequestMultiRepository {
     RingRequestRepository googleRepository;
 
     public Uni<List<RingRequest>> getRequests() {
-        return googleRepository.getRequests().map(requests -> {
-            return requests.stream().sorted(ringRequestComparator).toList();
-        });
+        return googleRepository.getRequests()
+                .map(requests -> requests.stream().sorted(ringRequestComparator).toList());
     }
 
 }

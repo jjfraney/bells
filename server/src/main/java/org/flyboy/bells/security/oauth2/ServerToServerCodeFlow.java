@@ -76,9 +76,8 @@ public class ServerToServerCodeFlow {
                 .refresh(clientId, clientSecret, grantType, refreshToken, scope)
 
                 .onFailure(ProcessingException.class).transform(Throwable::getCause)
-                .onFailure(AuthorizationException.class).invoke(e -> {
-                    logger.error("during refresh: {}", e.getMessage());
-                })
+                .onFailure(AuthorizationException.class)
+                .invoke(e -> logger.error("during refresh: {}", e.getMessage()))
 
                 .onItem().transform(t -> {
                     // response does not contain the refresh token
@@ -104,9 +103,7 @@ public class ServerToServerCodeFlow {
                 )
 
                 .onFailure(ProcessingException.class).transform(Throwable::getCause)
-                .onFailure(AuthorizationException.class).invoke(e -> {
-                    logger.error("during exchange: {}", e.getMessage());
-                })
+                .onFailure(AuthorizationException.class).invoke(e -> logger.error("during exchange: {}", e.getMessage()))
                 ;
     }
 

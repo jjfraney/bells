@@ -18,13 +18,6 @@ public class BearerTokenClientHeadersFactory extends ReactiveClientHeadersFactor
     TokenService tokenService;
 
 
-    /**
-     * returns headers for google calendar api
-     * @param incomingHeaders
-     * @param clientOutgoingHeaders
-     * @return
-     */
-
     @Override
     public Uni<MultivaluedMap<String, String>> getHeaders(MultivaluedMap<String, String> incomingHeaders, MultivaluedMap<String, String> clientOutgoingHeaders) {
 

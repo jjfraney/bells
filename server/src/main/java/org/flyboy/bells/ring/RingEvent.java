@@ -8,6 +8,7 @@ import java.time.ZonedDateTime;
  *
  * @author John J. Franey
  */
+@SuppressWarnings("unused")
 public record RingEvent(ZonedDateTime dateTime, String sampleName, RingRequest request) {
 }
 

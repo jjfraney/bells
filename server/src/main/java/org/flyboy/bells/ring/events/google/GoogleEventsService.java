@@ -5,8 +5,6 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.flyboy.bells.ring.RingRequest;
 import org.flyboy.bells.ring.RingRequestRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Named;
@@ -22,8 +20,6 @@ import java.util.List;
 @Named("Google")
 public class GoogleEventsService implements RingRequestRepository {
 
-    private static final Logger logger = LoggerFactory.getLogger(GoogleEventsService.class);
-
     @RestClient
     GoogleCalendar googleCalendar;
 
@@ -35,8 +31,6 @@ public class GoogleEventsService implements RingRequestRepository {
 
     @GET
     public Uni<List<RingRequest>> getRequests() {
-        RingRequest event = new RingRequest(ZonedDateTime.now(), "no-sample");
-
         ZonedDateTime min = ZonedDateTime.now();
         ZonedDateTime max = ZonedDateTime.now().plus(lookAhead);
         return googleCalendar.getEventList(calendarId, true, min, max)
