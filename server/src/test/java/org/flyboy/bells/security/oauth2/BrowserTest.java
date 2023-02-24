@@ -35,8 +35,20 @@ public class BrowserTest {
             desktop.when(Desktop::getDesktop).thenReturn(desktopMock);
 
             browser.browse(URI.create("https://example.com"));
-
         }
+    }
+
+    @Test
+    public void testIOException() throws IOException {
+        Mockito.doThrow(NullPointerException.class).when(desktopMock).browse(any(URI.class));
+
+        try (MockedStatic<Desktop> desktop = Mockito.mockStatic(Desktop.class)) {
+            desktop.when(Desktop::isDesktopSupported).thenReturn(true);
+            desktop.when(Desktop::getDesktop).thenReturn(desktopMock);
+
+            browser.browse(URI.create("https://example.com"));
+        }
+
     }
 
 

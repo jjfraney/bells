@@ -43,7 +43,7 @@ public class ServerToServerCodeFlow {
     @ConfigProperty(name="auth-service-url")
     String authServiceUrl;
 
-    private ProofKey pkce = ProofKey.generate();
+    private final ProofKey pkce = ProofKey.generate();
 
     public Uni<Tokens> getToken() {
 

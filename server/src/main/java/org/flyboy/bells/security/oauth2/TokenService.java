@@ -52,7 +52,7 @@ public class TokenService {
      * store and return the new tokens.
      * @return
      */
-    private Uni<Tokens> tokensFromStore() {
+    Uni<Tokens> tokensFromStore() {
         return Uni.createFrom().item(tokenStore.read())
                 .onItem().transformToUni(tokens -> {
                     // if expired

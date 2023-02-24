@@ -29,6 +29,11 @@ class GoogleCalendarLoggerFilter implements ClientRequestFilter, ClientResponseF
         logger.debug("received content: {}", new Extractor(responseContext));
     }
 
+    /**
+     * Provides toString method to be optionally called by
+     * logger when log levels match.
+     *
+     */
     private class Extractor {
         final ClientResponseContext context;
 
@@ -36,6 +41,11 @@ class GoogleCalendarLoggerFilter implements ClientRequestFilter, ClientResponseF
             this.context = context;
         }
 
+        /**
+         * extract the context's body as a string, restore the context's entity input stream, and
+         * return the body as a string.
+         * @return the entity body as a String
+         */
         public String toString() {
             String result;
             try (InputStream inputStream = context.getEntityStream()) {

@@ -2,8 +2,6 @@ package org.flyboy.bells.ring.events.google;
 
 import io.smallrye.mutiny.Uni;
 import org.flyboy.bells.ring.RingRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.inject.Inject;
 import javax.ws.rs.GET;
@@ -18,8 +16,6 @@ import java.util.List;
 @Path("/bell/events/google")
 @Produces(MediaType.APPLICATION_JSON)
 public class GoogleEventsResource {
-    private final static Logger logger = LoggerFactory.getLogger(GoogleEventsResource.class);
-
     @Inject
     GoogleEventsService service;
     @GET

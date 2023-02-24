@@ -28,13 +28,13 @@ import java.util.List;
 @RegisterProvider(ParamConverterProvider.class)
 public interface GoogleCalendar {
     record Event(String id, DateTime start, String summary) {
-        static public record DateTime(
+        public record DateTime(
                 @JsonProperty String date,
                 @JsonProperty("dateTime") ZonedDateTime dateTime,
                 String timezone
-        ) {};
+        ) {}
     }
-    static record EventList(
+    record EventList(
             List<Event> items) {}
 
     @GET

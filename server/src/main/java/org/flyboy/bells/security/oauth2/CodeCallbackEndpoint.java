@@ -45,7 +45,7 @@ public class CodeCallbackEndpoint {
     @ConfigProperty(name = "belltower.ecurity.oauth2.CodeCallbackEndpoint.path", defaultValue ="callback")
     String path;
 
-    private HttpServer httpServer;
+    HttpServer httpServer;
 
 
     private static final Consumer<String> DEFAULT_CODE_CALLBACK = (code) -> logger.error("callback not available: {}", code);
@@ -60,7 +60,7 @@ public class CodeCallbackEndpoint {
      * @param redirectUri the redirect uri of the callback endpoint
      * @param state the expected state value which should be in the callback
      */
-    public static record Info(String redirectUri, String state) {};
+    public record Info(String redirectUri, String state) {}
 
     /**
      * Enables the callback endpoint on a random available port on localhost.
@@ -96,7 +96,10 @@ public class CodeCallbackEndpoint {
     private Consumer<RoutingContext> handler(String expectedState) {
         return rc -> {
             List<String> states = rc.queryParam("state");
+            String state = states.size() == 1 ? states.get(0) : null;
+
             List<String> codes = rc.queryParam("code");
+            String code = codes.size() == 1 ? codes.get(0) : null;
 
             // send response first
             rc.response().end("bye bye")
@@ -105,26 +108,23 @@ public class CodeCallbackEndpoint {
                             f -> logger.error("fail sending response.", f)
                     );
 
-            // check state value to what we expecct
-            if (codes.size() == 1 && states.size() == 1) {
-                String code = codes.get(0);
-                String state = states.get(0);
-                if (expectedState.equals(state)) {
-                    if (code.length() > 0) {
-                        // emit the code
-                        codeCallback.accept(code);
-                    } else {
-                        logger.warn("code parameter has no value.");
-                    }
-                } else {
-                    logger.warn("state value does not match");
-                }
-            } else {
-                logger.warn("missing or too many params for code or state. states count={}, codes count={}",
-                        states.size(), codes.size());
+            if(isValidCode(expectedState, state, code)) {
+                codeCallback.accept(code);
             }
-
         };
+    }
+
+    boolean isValidCode(String expectedState, String state, String code) {
+        boolean goodCode = code != null && code.length() > 0;
+        if(! goodCode) {
+            logger.warn("Code has no value or length: code: {}", code);
+        }
+        boolean goodState = expectedState.equals(state);
+        if(! goodState) {
+            logger.warn("State has no value or is not equal to expected state.  state: {}, expected state: {}", state, expectedState);
+        }
+        boolean sendCode = goodCode && goodState;
+        return sendCode;
     }
 
 
@@ -164,7 +164,7 @@ public class CodeCallbackEndpoint {
                 path;
     }
 
-    private String generateState() {
+    String generateState() {
         int asciiZero = "0".getBytes(StandardCharsets.UTF_8)[0];
         int asciiLowerZee = "z".getBytes(StandardCharsets.UTF_8)[0];
         Random random = new Random();

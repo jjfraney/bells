@@ -1,6 +1,8 @@
 package org.flyboy.bells.ring.events.google;
 
 import javax.ws.rs.ext.ParamConverter;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -12,7 +14,8 @@ public class ZonedDateTimeConverter implements ParamConverter<ZonedDateTime> {
     public ZonedDateTime fromString(String value) {
         if (value == null)
             return null;
-        return ZonedDateTime.parse(value, FORMATTER);
+        Instant instant = Instant.parse(value);
+        return ZonedDateTime.ofInstant(instant, ZoneId.of("Z"));
     }
 
     @Override
