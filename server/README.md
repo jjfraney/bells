@@ -41,6 +41,15 @@ so they can sound at times which are not planned and scheduled.
 As a bell ringer, I'd like to have different bell samples available to play,
 so that the bells sounded are appropriate for the occasion.
 
+As an administrator, I'd like to manage user base and grant privileges
+to single or groups of users.
+To each user, I'd want to grant one or more of the following permissions:
+- read access to the online schedule
+- write access to the online schedule
+- ring wedding bell at will during scheduled wedding
+- ring funeral toll at will during scheduled mass
+- ring wedding bell at any time except blocked time.
+- ring funeral tool at any time except blocked time.
 # Configuration
 belltower.calendar.query.lookAhead - on query to calendar,
 obtain events from now until the look ahead value.
