@@ -6,9 +6,9 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.flyboy.bells.ring.RingRequest;
 import org.flyboy.bells.ring.RingRequestRepository;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Named;
-import javax.ws.rs.GET;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
+import jakarta.ws.rs.GET;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.List;

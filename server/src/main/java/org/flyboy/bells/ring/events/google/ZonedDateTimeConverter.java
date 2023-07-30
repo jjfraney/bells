@@ -1,6 +1,6 @@
 package org.flyboy.bells.ring.events.google;
 
-import javax.ws.rs.ext.ParamConverter;
+import jakarta.ws.rs.ext.ParamConverter;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;

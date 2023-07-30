@@ -3,9 +3,9 @@ package org.flyboy.bells.tower;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.net.NetClient;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.ws.rs.Produces;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.Produces;
 
 /**
  * @author John J. Franey

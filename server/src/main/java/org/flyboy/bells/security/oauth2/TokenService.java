@@ -2,8 +2,8 @@ package org.flyboy.bells.security.oauth2;
 
 import io.smallrye.mutiny.Uni;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.time.ZonedDateTime;
 
 /**

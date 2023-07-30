@@ -8,8 +8,8 @@ import io.vertx.mutiny.core.net.NetSocket;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.net.ConnectException;
 import java.util.List;
 import java.util.Objects;

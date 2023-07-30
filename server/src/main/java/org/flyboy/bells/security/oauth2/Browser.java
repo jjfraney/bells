@@ -4,7 +4,7 @@ import io.smallrye.common.annotation.Blocking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.awt.*;
 import java.io.IOException;
 import java.net.URI;

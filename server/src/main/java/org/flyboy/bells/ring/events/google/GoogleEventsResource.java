@@ -1,13 +1,14 @@
 package org.flyboy.bells.ring.events.google;
 
 import io.smallrye.mutiny.Uni;
+import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.flyboy.bells.ring.RingRequest;
 
-import javax.inject.Inject;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 import java.util.List;
 
 /**
@@ -19,6 +20,7 @@ public class GoogleEventsResource {
     @Inject
     GoogleEventsService service;
     @GET
+    @Operation(description = "Get scheduled ring requests from google calendar service.")
     public Uni<List<RingRequest>> getRequests() {
         return service.getRequests();
     }
