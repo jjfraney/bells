@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * @author John J. Franey
  */
-@Path("/bell/calendar")
+@Path("/timetable")
 @Produces(MediaType.APPLICATION_JSON)
 public class RingRequestRepositoryResource {
 
