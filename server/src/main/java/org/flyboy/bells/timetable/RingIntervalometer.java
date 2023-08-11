@@ -2,7 +2,7 @@ package org.flyboy.bells.timetable;
 
 import io.quarkus.scheduler.Scheduled;
 import io.vertx.mutiny.core.Vertx;
-import org.flyboy.bells.belfry.Belltower;
+import org.flyboy.bells.belfry.Bell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 import static java.util.Collections.emptyMap;
 
 /**
- * Drives the belltower to ring at scheduled times.
+ * Drives the bell to ring at scheduled times.
  *
  * @author John J. Franey
  */
@@ -34,7 +34,7 @@ public class RingIntervalometer {
     RingEventFactory ringEventFactory;
 
     @Inject
-    Belltower belltower;
+    Bell bell;
 
     @Inject
     Vertx vertx;
@@ -47,7 +47,7 @@ public class RingIntervalometer {
     /**
      * timer and handler to refresh the ring requests.
      */
-    @Scheduled(every = "${belltower.intervalometer.schedule.refresh.period:2h}")
+    @Scheduled(every = "${bell.intervalometer.schedule.refresh.period:2h}")
     void scheduleRingRequests() {
         ringRequestMultiRepository.getRequests().subscribe().with(
                 this::scheduleRingRequests,
@@ -116,7 +116,7 @@ public class RingIntervalometer {
     }
 
     /**
-     * request the belltower to ring the bells.
+     * request the bell to ring the bells.
      *
      * @param timerId of the expired timer
      */
@@ -129,7 +129,7 @@ public class RingIntervalometer {
 
             logger.debug("timer fired: timerId={}, ringEvent={}", timerId, ringEvent);
 
-            belltower.ring(ringEvent.sampleName())
+            bell.ring(ringEvent.sampleName())
                     .subscribe().with(
                             r -> logger.info(r.toString()),
                             f -> logger.error(f.getMessage())

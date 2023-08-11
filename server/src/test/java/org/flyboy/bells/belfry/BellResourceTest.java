@@ -19,10 +19,10 @@ import static org.mockito.ArgumentMatchers.anyString;
  * @author John J. Franey
  */
 @QuarkusTest
-class BelltowerResourceTest {
+class BellResourceTest {
 
     @InjectMock
-    Belltower belltower;
+    Bell bell;
 
     @Test
     public void testNoConnection() {
@@ -32,7 +32,7 @@ class BelltowerResourceTest {
                     throw new ConnectException("Connection refused: localhost/127.0.0.1:6600");
                 }));
 
-        Mockito.when(belltower.getStatus()).thenReturn(uni);
+        Mockito.when(bell.getStatus()).thenReturn(uni);
         given()
                 .when().get("/belltower")
                 .then().statusCode(500).body(Matchers.containsString("Connection refused: localhost/127.0.0.1:6600"));
@@ -42,7 +42,7 @@ class BelltowerResourceTest {
     void testStatus() {
 
         Uni<BellStatus> uni = Uni.createFrom().item(new BellStatus(false, "stop"));
-        Mockito.when(belltower.getStatus()).thenReturn(uni);
+        Mockito.when(bell.getStatus()).thenReturn(uni);
 
         given()
                 .when().get("/belltower")
@@ -53,7 +53,7 @@ class BelltowerResourceTest {
     @Test
     void testLock() {
         Uni<BellStatus> uni = Uni.createFrom().item(new BellStatus(true, "stop"));
-        Mockito.when(belltower.lock()).thenReturn(uni);
+        Mockito.when(bell.lock()).thenReturn(uni);
         given()
                 .when().put("/belltower/lock")
                 .then().statusCode(200).body(is("{\"locked\":true,\"status\":\"stop\"}"));
@@ -62,7 +62,7 @@ class BelltowerResourceTest {
     @Test
     void testUnlock() {
         Uni<BellStatus> uni = Uni.createFrom().item(new BellStatus(false, "stop"));
-        Mockito.when(belltower.unlock()).thenReturn(uni);
+        Mockito.when(bell.unlock()).thenReturn(uni);
 
         given()
                 .when().delete("/belltower/lock")
@@ -75,14 +75,14 @@ class BelltowerResourceTest {
             .onItem()
             .transformToUni(value -> {
                 //noinspection ReactiveStreamsThrowInOperator
-                throw new BellsUnavailableException("Belltower is locked.");
+                throw new BellsUnavailableException("Bell is locked.");
             });
 
-        Mockito.when(belltower.ring(anyString())).thenReturn(uni);
+        Mockito.when(bell.ring(anyString())).thenReturn(uni);
 
         given()
                 .when().put("/belltower/ring?pattern=call-to-mass")
-                .then().statusCode(409).body(containsString("Belltower is locked."));
+                .then().statusCode(409).body(containsString("Bell is locked."));
     }
 
     @Test
@@ -91,13 +91,13 @@ class BelltowerResourceTest {
                 .onItem()
                 .transformToUni(value -> {
                     //noinspection ReactiveStreamsThrowInOperator
-                    throw new BellsUnavailableException("Belltower is busy.");
+                    throw new BellsUnavailableException("Bell is busy.");
                 });
 
-        Mockito.when(belltower.ring(anyString())).thenReturn(uni);
+        Mockito.when(bell.ring(anyString())).thenReturn(uni);
         given()
                 .when().put("/belltower/ring?pattern=call-to-mass")
-                .then().statusCode(409).body(containsString("Belltower is busy."));
+                .then().statusCode(409).body(containsString("Bell is busy."));
 
     }
 
@@ -105,7 +105,7 @@ class BelltowerResourceTest {
     public void testRingSuccess() {
         String sampleName = "call-to-mass";
         Uni<BellStatus> uni = Uni.createFrom().item(new BellStatus(false, "play"));
-        Mockito.when(belltower.ring(sampleName)).thenReturn(uni);
+        Mockito.when(bell.ring(sampleName)).thenReturn(uni);
 
         given()
                 .when().put("/belltower/ring?pattern=" + sampleName)
@@ -122,7 +122,7 @@ class BelltowerResourceTest {
                     //noinspection ReactiveStreamsThrowInOperator
                     throw new BelfryException("Failed to play sample, error=33, text=some mock error");
                 });
-        Mockito.when(belltower.ring(sampleName)).thenReturn(uni);
+        Mockito.when(bell.ring(sampleName)).thenReturn(uni);
 
         given()
                 .when().put("/belltower/ring?pattern=" + sampleName)
@@ -132,7 +132,7 @@ class BelltowerResourceTest {
     @Test
     public void testRingStopSuccess() {
         Uni<BellStatus> uni = Uni.createFrom().item(new BellStatus(false, "stop"));
-        Mockito.when(belltower.stop()).thenReturn(uni);
+        Mockito.when(bell.stop()).thenReturn(uni);
 
         given()
                 .when().delete("/belltower/ring")
@@ -148,7 +148,7 @@ class BelltowerResourceTest {
                     //noinspection ReactiveStreamsThrowInOperator
                     throw new BellPatternNotFoundException(sampleName);
                 });
-        Mockito.when(belltower.ring(sampleName)).thenReturn(uni);
+        Mockito.when(bell.ring(sampleName)).thenReturn(uni);
 
         given()
                 .when().put("/belltower/ring?pattern=" + sampleName)

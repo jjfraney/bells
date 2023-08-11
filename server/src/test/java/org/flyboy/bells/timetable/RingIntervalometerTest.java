@@ -2,7 +2,7 @@ package org.flyboy.bells.timetable;
 
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.Vertx;
-import org.flyboy.bells.belfry.Belltower;
+import org.flyboy.bells.belfry.Bell;
 import org.flyboy.bells.belfry.BellStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,7 +26,7 @@ public class RingIntervalometerTest {
 
     RingRequestMultiRepository mockRingRequestMultiRepository;
 
-    Belltower mockBelltower;
+    Bell mockBell;
 
     Vertx mockVertx;
     @BeforeEach
@@ -39,8 +39,8 @@ public class RingIntervalometerTest {
         mockRingRequestMultiRepository = Mockito.mock(RingRequestMultiRepository.class);
         ringIntervalometer.ringRequestMultiRepository = mockRingRequestMultiRepository;
 
-        mockBelltower = Mockito.mock(Belltower.class);
-        ringIntervalometer.belltower = mockBelltower;
+        mockBell = Mockito.mock(Bell.class);
+        ringIntervalometer.bell = mockBell;
 
         ringIntervalometer.ringEventFactory = new RingEventFactory();
     }
@@ -55,7 +55,7 @@ public class RingIntervalometerTest {
 
         BellStatus result = new BellStatus(false, "play");
 
-        Mockito.when(mockBelltower.ring("myogg.ogg")).thenReturn(Uni.createFrom().item(result));
+        Mockito.when(mockBell.ring("myogg.ogg")).thenReturn(Uni.createFrom().item(result));
 
         ringIntervalometer.ring(1L);
         Assertions.assertEquals(0, ringIntervalometer.currentTimers.size());

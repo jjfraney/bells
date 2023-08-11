@@ -12,7 +12,7 @@ import java.time.ZonedDateTime;
 @ApplicationScoped
 public class RingEventFactory {
 
-    @ConfigProperty(name = "belltower.ring.offset.mass", defaultValue = "-PT1M")
+    @ConfigProperty(name = "bell.ring.offset.mass", defaultValue = "-PT1M")
     String massOffset;
 
     private Duration duration;

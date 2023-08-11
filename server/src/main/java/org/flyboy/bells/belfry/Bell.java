@@ -15,10 +15,10 @@ import java.util.stream.Stream;
  * @author John J. Franey
  */
 @ApplicationScoped
-public class Belltower {
+public class Bell {
 
     // in seconds
-    @ConfigProperty(name = "belltower.peal.duration.default", defaultValue = "60")
+    @ConfigProperty(name = "bell.peal.duration.default", defaultValue = "60")
     long defaultPealDuration;
 
     static final List<String> MPD_PRE_PLAY_STATUS = List.of("lsinfo", "status");
@@ -76,7 +76,7 @@ public class Belltower {
                 })
 
                 .onItem().transform(response -> {
-                    // belltower is not available if already busy playing a bell sample
+                    // bell is not available if already busy playing a bell sample
                     String state = MpdResponse.getField(response, "state")
                             .orElseThrow(() -> new IllegalArgumentException("state is not returned"));
 

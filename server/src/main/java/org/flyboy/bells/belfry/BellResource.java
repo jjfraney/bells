@@ -27,16 +27,16 @@ import java.net.ConnectException;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Path("/belltower")
-public class BelltowerResource {
+public class BellResource {
     private static final String VACANT = "__vacant__";
 
     @Inject
-    Belltower belltower;
+    Bell bell;
 
     @GET
-    @Operation(description = "Return belltower status.")
+    @Operation(description = "Return bell status.")
     public Uni<BellStatus> getStatus() {
-        return belltower.getStatus();
+        return bell.getStatus();
     }
 
     @PUT
@@ -48,7 +48,7 @@ public class BelltowerResource {
                     if (pattern.equals(VACANT)) {
                         return Uni.createFrom().failure(new BadRequestException("'pattern' parameter is required and missing."));
                     } else {
-                        return belltower.ring(pattern);
+                        return bell.ring(pattern);
                     }
                 });
 
@@ -59,14 +59,14 @@ public class BelltowerResource {
     @Path("/ring")
     @Operation(description = "Stop ringing the bells.  Some patterns cannot be stopped and must ring through.")
     public Uni<BellStatus> ringStop() {
-        return belltower.stop();
+        return bell.stop();
     }
 
     @DELETE
     @Path("/lock")
     @Operation(description = "Release the lock.  Requests to ring the bells will be ignored when locked.")
     public Uni<BellStatus> unlock() {
-        return belltower.unlock();
+        return bell.unlock();
     }
 
     //@PUT
@@ -74,7 +74,7 @@ public class BelltowerResource {
     @Path("/lock")
     @Operation(description = "Engage the lock.  Requests to ring the bells will be ignored when locked.")
     public Uni<BellStatus> lock() {
-        return belltower.lock();
+        return bell.lock();
     }
 
     @SuppressWarnings("unused")
