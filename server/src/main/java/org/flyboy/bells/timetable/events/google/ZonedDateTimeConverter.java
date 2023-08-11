@@ -1,4 +1,4 @@
-package org.flyboy.bells.ring.events.google;
+package org.flyboy.bells.timetable.events.google;
 
 import jakarta.ws.rs.ext.ParamConverter;
 import java.time.Instant;

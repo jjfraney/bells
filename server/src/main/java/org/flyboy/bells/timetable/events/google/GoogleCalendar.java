@@ -1,4 +1,4 @@
-package org.flyboy.bells.ring.events.google;
+package org.flyboy.bells.timetable.events.google;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.smallrye.mutiny.Uni;
@@ -18,7 +18,7 @@ import java.util.List;
  * Rest client for google calendar api.
  * <p>
  *     Providers add authorization header, a logger, and param converters.
- *     Loads only the fields of interest of a {@link org.flyboy.bells.ring.RingRequest}
+ *     Loads only the fields of interest of a {@link org.flyboy.bells.timetable.RingRequest}
  * </p>
  * @author John J. Franey
  */

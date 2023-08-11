@@ -1,10 +1,10 @@
-package org.flyboy.bells.ring.events.google;
+package org.flyboy.bells.timetable.events.google;
 
 import io.smallrye.mutiny.Uni;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.flyboy.bells.ring.RingRequest;
-import org.flyboy.bells.ring.RingRequestRepository;
+import org.flyboy.bells.timetable.RingRequest;
+import org.flyboy.bells.timetable.RingRequestRepository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Named;

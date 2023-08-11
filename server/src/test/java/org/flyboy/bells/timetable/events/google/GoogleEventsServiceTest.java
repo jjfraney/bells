@@ -1,8 +1,8 @@
-package org.flyboy.bells.ring.events.google;
+package org.flyboy.bells.timetable.events.google;
 
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;
-import org.flyboy.bells.ring.RingRequest;
+import org.flyboy.bells.timetable.RingRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;

@@ -1,4 +1,4 @@
-package org.flyboy.bells.ring;
+package org.flyboy.bells.timetable;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

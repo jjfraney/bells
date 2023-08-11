@@ -1,4 +1,4 @@
-package org.flyboy.bells.ring.events.google;
+package org.flyboy.bells.timetable.events.google;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

@@ -1,8 +1,8 @@
-package org.flyboy.bells.ring.events.google;
+package org.flyboy.bells.timetable.events.google;
 
 import io.smallrye.mutiny.Uni;
 import org.eclipse.microprofile.openapi.annotations.Operation;
-import org.flyboy.bells.ring.RingRequest;
+import org.flyboy.bells.timetable.RingRequest;
 
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
