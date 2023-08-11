@@ -1,7 +1,7 @@
 package org.flyboy.bells.security.oauth2;
 
 import io.smallrye.mutiny.Uni;
-import org.flyboy.bells.tower.ErrorResponseBody;
+import org.flyboy.bells.belfry.ErrorResponseBody;
 import org.jboss.resteasy.reactive.server.ServerExceptionMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package org.flyboy.bells.tower;
+package org.flyboy.bells.belfry;
 
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.helpers.test.UniAssertSubscriber;

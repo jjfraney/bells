@@ -1,4 +1,4 @@
-package org.flyboy.bells.tower;
+package org.flyboy.bells.belfry;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;

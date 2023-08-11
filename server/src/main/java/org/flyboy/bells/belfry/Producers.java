@@ -1,4 +1,4 @@
-package org.flyboy.bells.tower;
+package org.flyboy.bells.belfry;
 
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.net.NetClient;

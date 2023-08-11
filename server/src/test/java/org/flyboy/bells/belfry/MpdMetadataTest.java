@@ -1,4 +1,4 @@
-package org.flyboy.bells.tower;
+package org.flyboy.bells.belfry;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

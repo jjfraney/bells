@@ -2,8 +2,8 @@ package org.flyboy.bells.ring;
 
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.Vertx;
-import org.flyboy.bells.tower.Belltower;
-import org.flyboy.bells.tower.BelltowerStatus;
+import org.flyboy.bells.belfry.Belltower;
+import org.flyboy.bells.belfry.BelltowerStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -2,7 +2,7 @@ package org.flyboy.bells.ring;
 
 import io.quarkus.scheduler.Scheduled;
 import io.vertx.mutiny.core.Vertx;
-import org.flyboy.bells.tower.Belltower;
+import org.flyboy.bells.belfry.Belltower;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
