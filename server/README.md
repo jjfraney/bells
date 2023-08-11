@@ -199,16 +199,16 @@ Extensions are expected but not currently delivered.
 Possible extensions are to an Office 365 calendar API,
 or a local file.
 
-## Belltower
+## Belfry
 
-The Belltower can:
+The Belfry can:
 - start playing bell samples,
 - stop playing bell samples,
 - get status of the underlying media player.
 
 ### RepeatTimer
 
-The RepeatTimer is used by Belltower to control the variable duration peals.
+The RepeatTimer is used by Belfry to control the variable duration peals.
 
 The RepeatTimer requires three sample segments of the peal:
 a beginning, middle and an end.
@@ -304,7 +304,7 @@ Currently, the only media player supported is Music Player Deamon, MPD.
 Capability to use a different player is not a goal of belltower at this time.
 
 The command line tool 'mpc' can control the MPD player.
-The Belltower component sends commands to the configured MPD player
+The Belfry component sends commands to the configured MPD player
 over a network connection or unix socket.
 
 The media player will drive the audio subsystem to
@@ -315,14 +315,14 @@ before the media player can successfully play the sample.
 
 ```mermaid
     classDiagram
-        class Belltower
+        class Belfry
         class RingRequestRepository{
             +List~RingRequest~ getRingRequests()
         }
-        Belltower *-- LinuxMPC
-        Belltower *-- RepeatTimer
-        Belltower *-- MpdMetadata
-        RingIntervalometer *-- Belltower
+        Belfry *-- LinuxMPC
+        Belfry *-- RepeatTimer
+        Belfry *-- MpdMetadata
+        RingIntervalometer *-- Belfry
         RingIntervalometer *--RingRequestRepository
         RingRequestRepository <|-- GoogleRingRequestRepository
         RingRequestRepository <|-- LocalRingRequestRepository
