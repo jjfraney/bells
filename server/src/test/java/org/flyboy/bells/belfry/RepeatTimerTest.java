@@ -103,7 +103,7 @@ public class RepeatTimerTest {
     public void testActivateRepeatFail() {
         List<String> response = List.of("OK MPD 0.23.5", "OK");
         Mockito.when(repeatTimer.mpd.send(RepeatTimer.MPD_ACTIVATE_REPEAT_MODE))
-                .thenReturn(Uni.createFrom().item(response).onItem().failWith(() -> new BelltowerException("mock")));
+                .thenReturn(Uni.createFrom().item(response).onItem().failWith(() -> new BelfryException("mock")));
 
         repeatTimer.activateRepeatTimerId = 10L;
         repeatTimer.activateRepeatTimerHandler.accept(repeatTimer.activateRepeatTimerId);
@@ -126,7 +126,7 @@ public class RepeatTimerTest {
     public void testDeactivateRepeatFail() {
         List<String> response = List.of("OK MPD 0.23.5", "OK");
         Mockito.when(repeatTimer.mpd.send(RepeatTimer.MPD_DEACTIVATE_REPEAT_MODE))
-                .thenReturn(Uni.createFrom().item(response).onItem().failWith(() -> new BelltowerException("mock")));
+                .thenReturn(Uni.createFrom().item(response).onItem().failWith(() -> new BelfryException("mock")));
 
         repeatTimer.deactivateRepeatTimerId = 10L;
         repeatTimer.deactivateRepeatTimerHandler.accept(repeatTimer.activateRepeatTimerId);

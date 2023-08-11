@@ -3,10 +3,10 @@ package org.flyboy.bells.belfry;
 /**
  * @author John J. Franey
  */
-public class BelltowerPatternNotFoundException extends BelltowerException {
+public class BellPatternNotFoundException extends BelfryException {
     private final String pattern;
 
-    BelltowerPatternNotFoundException(String pattern) {
+    BellPatternNotFoundException(String pattern) {
         this.pattern = pattern;
     }
 

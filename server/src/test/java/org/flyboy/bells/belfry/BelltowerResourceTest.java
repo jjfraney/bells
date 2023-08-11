@@ -26,7 +26,7 @@ class BelltowerResourceTest {
 
     @Test
     public void testNoConnection() {
-        Uni<BelltowerStatus> uni = Uni.createFrom().item(true)
+        Uni<BellStatus> uni = Uni.createFrom().item(true)
                 .onItem()
                 .transformToUni(Unchecked.function(value -> {
                     throw new ConnectException("Connection refused: localhost/127.0.0.1:6600");
@@ -41,7 +41,7 @@ class BelltowerResourceTest {
     @Test
     void testStatus() {
 
-        Uni<BelltowerStatus> uni = Uni.createFrom().item(new BelltowerStatus(false, "stop"));
+        Uni<BellStatus> uni = Uni.createFrom().item(new BellStatus(false, "stop"));
         Mockito.when(belltower.getStatus()).thenReturn(uni);
 
         given()
@@ -52,7 +52,7 @@ class BelltowerResourceTest {
 
     @Test
     void testLock() {
-        Uni<BelltowerStatus> uni = Uni.createFrom().item(new BelltowerStatus(true, "stop"));
+        Uni<BellStatus> uni = Uni.createFrom().item(new BellStatus(true, "stop"));
         Mockito.when(belltower.lock()).thenReturn(uni);
         given()
                 .when().put("/belltower/lock")
@@ -61,7 +61,7 @@ class BelltowerResourceTest {
 
     @Test
     void testUnlock() {
-        Uni<BelltowerStatus> uni = Uni.createFrom().item(new BelltowerStatus(false, "stop"));
+        Uni<BellStatus> uni = Uni.createFrom().item(new BellStatus(false, "stop"));
         Mockito.when(belltower.unlock()).thenReturn(uni);
 
         given()
@@ -71,11 +71,11 @@ class BelltowerResourceTest {
 
     @Test
     public void testRingWhenLocked() {
-        Uni<BelltowerStatus> uni = Uni.createFrom().item(true)
+        Uni<BellStatus> uni = Uni.createFrom().item(true)
             .onItem()
             .transformToUni(value -> {
                 //noinspection ReactiveStreamsThrowInOperator
-                throw new BelltowerUnavailableException("Belltower is locked.");
+                throw new BellsUnavailableException("Belltower is locked.");
             });
 
         Mockito.when(belltower.ring(anyString())).thenReturn(uni);
@@ -87,11 +87,11 @@ class BelltowerResourceTest {
 
     @Test
     public void testRingWhenBusy() {
-        Uni<BelltowerStatus> uni = Uni.createFrom().item(true)
+        Uni<BellStatus> uni = Uni.createFrom().item(true)
                 .onItem()
                 .transformToUni(value -> {
                     //noinspection ReactiveStreamsThrowInOperator
-                    throw new BelltowerUnavailableException("Belltower is busy.");
+                    throw new BellsUnavailableException("Belltower is busy.");
                 });
 
         Mockito.when(belltower.ring(anyString())).thenReturn(uni);
@@ -104,7 +104,7 @@ class BelltowerResourceTest {
     @Test
     public void testRingSuccess() {
         String sampleName = "call-to-mass";
-        Uni<BelltowerStatus> uni = Uni.createFrom().item(new BelltowerStatus(false, "play"));
+        Uni<BellStatus> uni = Uni.createFrom().item(new BellStatus(false, "play"));
         Mockito.when(belltower.ring(sampleName)).thenReturn(uni);
 
         given()
@@ -116,11 +116,11 @@ class BelltowerResourceTest {
     public void testRingFail() {
         String sampleName = "call-to-mass";
 
-        Uni<BelltowerStatus> uni = Uni.createFrom().item(true)
+        Uni<BellStatus> uni = Uni.createFrom().item(true)
                 .onItem()
                 .transformToUni(value -> {
                     //noinspection ReactiveStreamsThrowInOperator
-                    throw new BelltowerException("Failed to play sample, error=33, text=some mock error");
+                    throw new BelfryException("Failed to play sample, error=33, text=some mock error");
                 });
         Mockito.when(belltower.ring(sampleName)).thenReturn(uni);
 
@@ -131,7 +131,7 @@ class BelltowerResourceTest {
 
     @Test
     public void testRingStopSuccess() {
-        Uni<BelltowerStatus> uni = Uni.createFrom().item(new BelltowerStatus(false, "stop"));
+        Uni<BellStatus> uni = Uni.createFrom().item(new BellStatus(false, "stop"));
         Mockito.when(belltower.stop()).thenReturn(uni);
 
         given()
@@ -142,11 +142,11 @@ class BelltowerResourceTest {
     @Test
     public void testRingSampleNotFound() {
         String sampleName = "call-to-mass";
-        Uni<BelltowerStatus> uni = Uni.createFrom().item(true)
+        Uni<BellStatus> uni = Uni.createFrom().item(true)
                 .onItem()
                 .transformToUni(value -> {
                     //noinspection ReactiveStreamsThrowInOperator
-                    throw new BelltowerPatternNotFoundException(sampleName);
+                    throw new BellPatternNotFoundException(sampleName);
                 });
         Mockito.when(belltower.ring(sampleName)).thenReturn(uni);
 

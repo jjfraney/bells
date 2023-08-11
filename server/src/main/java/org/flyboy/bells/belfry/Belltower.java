@@ -49,7 +49,7 @@ public class Belltower {
      * @return status
      * @see Mpd
      */
-    public Uni<BelltowerStatus> getStatus() {
+    public Uni<BellStatus> getStatus() {
         return mpd.send("status")
                 .onItem().transform(this::getBelltowerStatus);
     }
@@ -60,12 +60,12 @@ public class Belltower {
     3) if repeats, set timers, return status
      */
     @SuppressWarnings("ReactiveStreamsThrowInOperator")
-    public Uni<BelltowerStatus> ring(String name) {
+    public Uni<BellStatus> ring(String name) {
         return Uni.createFrom().nullItem()
                 .onItem().transform(nullItem -> {
                     // not available if locked.
                     if (isLocked) {
-                        throw new BelltowerUnavailableException("Belltower is locked.");
+                        throw new BellsUnavailableException("Belfry is locked.");
                     }
                     return null;
                 })
@@ -81,7 +81,7 @@ public class Belltower {
                             .orElseThrow(() -> new IllegalArgumentException("state is not returned"));
 
                     if (state.equals("play")) {
-                        throw new BelltowerUnavailableException("Belltower is busy.");
+                        throw new BellsUnavailableException("Belfry is busy.");
                     }
                     return response;
                 })
@@ -106,7 +106,7 @@ public class Belltower {
                                     });
                         }
                         default -> {
-                            return Uni.createFrom().failure(() -> new BelltowerPatternNotFoundException(name));
+                            return Uni.createFrom().failure(() -> new BellPatternNotFoundException(name));
                         }
                     }
                 })
@@ -118,9 +118,9 @@ public class Belltower {
                     MpdResponse.Ack ack = ((MpdCommandException) thrown).getAck();
                     final int sampleNotFoundError = 50;
                     if (ack.getError() == sampleNotFoundError) {
-                        return new BelltowerPatternNotFoundException(name);
+                        return new BellPatternNotFoundException(name);
                     } else {
-                        return new BelltowerException("error="
+                        return new BelfryException("error="
                                 + ack.getError() + ", text=" + ack.getMessageText());
                     }
                 })
@@ -129,25 +129,25 @@ public class Belltower {
 
     }
 
-    public Uni<BelltowerStatus> stop() {
+    public Uni<BellStatus> stop() {
         return Uni.createFrom().nullItem()
                 .onItem().invoke(() -> repeatTimer.stop())
                 .onItem().transformToUni(o -> getStatus());
     }
 
-    public Uni<BelltowerStatus> lock() {
+    public Uni<BellStatus> lock() {
         isLocked = true;
         return getStatus();
     }
 
-    public Uni<BelltowerStatus> unlock() {
+    public Uni<BellStatus> unlock() {
         isLocked = false;
         return getStatus();
     }
 
-    private BelltowerStatus getBelltowerStatus(List<String> result) {
+    private BellStatus getBelltowerStatus(List<String> result) {
         String state = MpdResponse.getField(result, "state").orElse("unknown");
 
-        return new BelltowerStatus(isLocked, state);
+        return new BellStatus(isLocked, state);
     }
 }

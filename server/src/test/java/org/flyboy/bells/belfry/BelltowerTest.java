@@ -62,9 +62,9 @@ class BelltowerTest {
 
         Mockito.when(belltower.mpd.send(anyString())).thenReturn(Uni.createFrom().item(List.of("state: stop")));
 
-        BelltowerStatus expected = new BelltowerStatus(false, "stop");
+        BellStatus expected = new BellStatus(false, "stop");
 
-        Uni<BelltowerStatus> actual = belltower.getStatus();
+        Uni<BellStatus> actual = belltower.getStatus();
 
         actual.subscribe().withSubscriber(UniAssertSubscriber.create())
                 .assertCompleted().assertItem(expected);
@@ -76,9 +76,9 @@ class BelltowerTest {
 
         Mockito.when(belltower.mpd.send("status")).thenReturn(Uni.createFrom().item(List.of("state: stop")));
 
-        BelltowerStatus expected = new BelltowerStatus(true, "stop");
+        BellStatus expected = new BellStatus(true, "stop");
 
-        Uni<BelltowerStatus> actual = belltower.lock();
+        Uni<BellStatus> actual = belltower.lock();
 
         actual.subscribe().withSubscriber(UniAssertSubscriber.create())
                 .assertCompleted().assertItem(expected);
@@ -88,9 +88,9 @@ class BelltowerTest {
     void testUnlock() {
         Mockito.when(belltower.mpd.send(anyString())).thenReturn(Uni.createFrom().item(List.of("state: stop", "OK")));
 
-        BelltowerStatus expected = new BelltowerStatus(false, "stop");
+        BellStatus expected = new BellStatus(false, "stop");
 
-        Uni<BelltowerStatus> actual = belltower.getStatus();
+        Uni<BellStatus> actual = belltower.getStatus();
 
         actual.subscribe().withSubscriber(UniAssertSubscriber.create())
                 .assertCompleted().assertItem(expected);
@@ -101,9 +101,9 @@ class BelltowerTest {
         // when locked, resource returns http status code LOCKED
         belltower.lock().subscribe().withSubscriber(UniAssertSubscriber.create()).assertCompleted();
 
-        Uni<BelltowerStatus> actual = belltower.ring("call-to-mass");
+        Uni<BellStatus> actual = belltower.ring("call-to-mass");
         actual.subscribe().withSubscriber(UniAssertSubscriber.create())
-                .assertFailed().assertFailedWith(BelltowerUnavailableException.class);
+                .assertFailed().assertFailedWith(BellsUnavailableException.class);
 
     }
 
@@ -111,9 +111,9 @@ class BelltowerTest {
     public void testRingWhenBusy() {
         Mockito.when(belltower.mpd.send(Belltower.MPD_PRE_PLAY_STATUS)).thenReturn(Uni.createFrom().item(List.of("state: play", "OK")));
 
-        Uni<BelltowerStatus> actual = belltower.ring("call-to-mass");
+        Uni<BellStatus> actual = belltower.ring("call-to-mass");
         actual.subscribe().withSubscriber(UniAssertSubscriber.create())
-                .assertFailed().assertFailedWith(BelltowerUnavailableException.class);
+                .assertFailed().assertFailedWith(BellsUnavailableException.class);
 
     }
 
@@ -134,8 +134,8 @@ class BelltowerTest {
                 Uni.createFrom().item(List.of("state: play", "OK")));
 
 
-        Uni<BelltowerStatus> actual = belltower.ring(sampleName);
-        BelltowerStatus expected = new BelltowerStatus(false, "play");
+        Uni<BellStatus> actual = belltower.ring(sampleName);
+        BellStatus expected = new BellStatus(false, "play");
 
         actual.subscribe().withSubscriber(UniAssertSubscriber.create())
                 .assertCompleted().assertItem(expected);
@@ -169,7 +169,7 @@ class BelltowerTest {
                 Uni.createFrom().item(List.of("state: play", "OK")));
 
 
-        BelltowerStatus expected = new BelltowerStatus(false, "play");
+        BellStatus expected = new BellStatus(false, "play");
 
         belltower.ring(sampleName).subscribe().withSubscriber(UniAssertSubscriber.create())
                 .assertCompleted().assertItem(expected);
@@ -200,9 +200,9 @@ class BelltowerTest {
         MpdCommandException mpdCommandException = new MpdCommandException(ack);
         Mockito.when(belltower.mpd.send(play)).thenReturn(Uni.createFrom().failure(mpdCommandException));
 
-        Uni<BelltowerStatus> actual = belltower.ring(sampleName);
+        Uni<BellStatus> actual = belltower.ring(sampleName);
         actual.subscribe().withSubscriber(UniAssertSubscriber.create())
-                .assertFailed().assertFailedWith(BelltowerPatternNotFoundException.class);
+                .assertFailed().assertFailedWith(BellPatternNotFoundException.class);
 
 
     }
@@ -219,7 +219,7 @@ class BelltowerTest {
         Mockito.when(belltower.mpd.send(PEAL_COMMANDS)).thenReturn(Uni.createFrom().failure(mpdCommandException));
 
         belltower.ring(sampleName).subscribe().withSubscriber(UniAssertSubscriber.create())
-                .assertFailedWith(BelltowerException.class);
+                .assertFailedWith(BelfryException.class);
 
         Mockito.verify(belltower.repeatTimer, Mockito.times(0)).start(List.of(
                 new MpdMetadata.Song("peal-beginning.ogg", 2200),
@@ -237,9 +237,9 @@ class BelltowerTest {
         Mockito.when(belltower.mpd.send(Belltower.MPD_PRE_PLAY_STATUS)).thenReturn(
                 Uni.createFrom().item(List.of("state: stop", "OK")));
 
-        Uni<BelltowerStatus> actual = belltower.ring(sampleName);
+        Uni<BellStatus> actual = belltower.ring(sampleName);
         actual.subscribe().withSubscriber(UniAssertSubscriber.create())
-                .assertFailed().assertFailedWith(BelltowerPatternNotFoundException.class);
+                .assertFailed().assertFailedWith(BellPatternNotFoundException.class);
 
     }
 

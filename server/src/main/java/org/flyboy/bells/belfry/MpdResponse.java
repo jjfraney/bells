@@ -54,7 +54,7 @@ public class MpdResponse {
                 this.error = Integer.parseInt(m.group(1));
                 this.messageText = m.group(4);
             } else {
-                throw new BelltowerException("bad parse");
+                throw new BelfryException("bad parse");
             }
         }
 

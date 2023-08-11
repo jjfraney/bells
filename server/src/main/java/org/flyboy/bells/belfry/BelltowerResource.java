@@ -35,14 +35,14 @@ public class BelltowerResource {
 
     @GET
     @Operation(description = "Return belltower status.")
-    public Uni<BelltowerStatus> getStatus() {
+    public Uni<BellStatus> getStatus() {
         return belltower.getStatus();
     }
 
     @PUT
     @Path("/ring")
     @Operation(description = "Ring bells specified by the named pattern.")
-    public Uni<BelltowerStatus> startPattern(@DefaultValue(VACANT) @QueryParam("pattern") String pattern) {
+    public Uni<BellStatus> startPattern(@DefaultValue(VACANT) @QueryParam("pattern") String pattern) {
         return Uni.createFrom().nullItem()
                 .onItem().transformToUni(n -> {
                     if (pattern.equals(VACANT)) {
@@ -58,14 +58,14 @@ public class BelltowerResource {
     @DELETE
     @Path("/ring")
     @Operation(description = "Stop ringing the bells.  Some patterns cannot be stopped and must ring through.")
-    public Uni<BelltowerStatus> ringStop() {
+    public Uni<BellStatus> ringStop() {
         return belltower.stop();
     }
 
     @DELETE
     @Path("/lock")
     @Operation(description = "Release the lock.  Requests to ring the bells will be ignored when locked.")
-    public Uni<BelltowerStatus> unlock() {
+    public Uni<BellStatus> unlock() {
         return belltower.unlock();
     }
 
@@ -73,7 +73,7 @@ public class BelltowerResource {
     @PUT
     @Path("/lock")
     @Operation(description = "Engage the lock.  Requests to ring the bells will be ignored when locked.")
-    public Uni<BelltowerStatus> lock() {
+    public Uni<BellStatus> lock() {
         return belltower.lock();
     }
 
@@ -94,7 +94,7 @@ public class BelltowerResource {
 
     @SuppressWarnings("unused")
     @ServerExceptionMapper
-    public Response mapException(BelltowerUnavailableException e) {
+    public Response mapException(BellsUnavailableException e) {
         ErrorResponseBody body = new ErrorResponseBody();
         body.setDetails(e.getMessage());
         return Response.status(Response.Status.CONFLICT).entity(body).build();
@@ -102,7 +102,7 @@ public class BelltowerResource {
 
     @SuppressWarnings("unused")
     @ServerExceptionMapper
-    public Response mapException(BelltowerPatternNotFoundException e) {
+    public Response mapException(BellPatternNotFoundException e) {
         ErrorResponseBody body = new ErrorResponseBody();
         body.setDetails(e.getMessage());
         return Response.status(Response.Status.NOT_FOUND).entity(body).build();
@@ -110,7 +110,7 @@ public class BelltowerResource {
 
     @SuppressWarnings("unused")
     @ServerExceptionMapper
-    public Response mapException(BelltowerException e) {
+    public Response mapException(BelfryException e) {
         ErrorResponseBody body = new ErrorResponseBody();
         body.setDetails(e.getMessage());
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(body).build();

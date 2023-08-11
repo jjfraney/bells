@@ -3,7 +3,7 @@ package org.flyboy.bells.timetable;
 import io.smallrye.mutiny.Uni;
 import io.vertx.mutiny.core.Vertx;
 import org.flyboy.bells.belfry.Belltower;
-import org.flyboy.bells.belfry.BelltowerStatus;
+import org.flyboy.bells.belfry.BellStatus;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -53,7 +53,7 @@ public class RingIntervalometerTest {
         }};
 
 
-        BelltowerStatus result = new BelltowerStatus(false, "play");
+        BellStatus result = new BellStatus(false, "play");
 
         Mockito.when(mockBelltower.ring("myogg.ogg")).thenReturn(Uni.createFrom().item(result));
 
