@@ -1,4 +1,4 @@
-package org.flyboy.bells.ui.javafx.scene;
+package org.flyboy.belltower.panel.scene;
 
 import javafx.event.ActionEvent;
 import javafx.scene.Node;

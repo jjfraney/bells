@@ -5,7 +5,7 @@
 
 <AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/16"
   xmlns:fx="http://javafx.com/fxml/1"
-  fx:controller="org.flyboy.bells.ui.javafx.scene.CalendarScene">
+  fx:controller="org.flyboy.belltower.panel.scene.CalendarScene">
    <DatePicker fx:id="dtPicker" layoutX="67.0" layoutY="71.0"/>
    <ListView fx:id="lstCalendar" layoutX="317.0" layoutY="53.0" prefHeight="200.0"
      prefWidth="200.0"/>

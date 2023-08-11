@@ -1,4 +1,4 @@
-package org.flyboy.bells.ui.javafx.conf;
+package org.flyboy.belltower.panel.conf;
 
 import javafx.fxml.FXMLLoader;
 import javax.enterprise.inject.Instance;

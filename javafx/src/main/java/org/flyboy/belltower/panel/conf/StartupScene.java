@@ -1,4 +1,4 @@
-package org.flyboy.bells.ui.javafx.conf;
+package org.flyboy.belltower.panel.conf;
 
 import javax.inject.Qualifier;
 import java.lang.annotation.Documented;

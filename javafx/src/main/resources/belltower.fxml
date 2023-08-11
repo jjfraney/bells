@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="251.0" prefWidth="496.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.flyboy.bells.ui.javafx.scene.BelltowerScene">
+<AnchorPane id="AnchorPane" prefHeight="251.0" prefWidth="496.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.flyboy.belltower.panel.scene.BelltowerScene">
     <Button fx:id="btnRing" layoutX="308.0" layoutY="73.0" mnemonicParsing="false" onAction="#ringBell" text="Ring" />
    <Button fx:id="btnStatus" layoutX="141.0" layoutY="213.0" mnemonicParsing="false" onAction="#getStatus" text="Status" />
    <Text fx:id="txtState" layoutX="185.0" layoutY="213.0" />

@@ -1,9 +1,9 @@
-package org.flyboy.bells.ui.javafx.scene;
+package org.flyboy.belltower.panel.scene;
 
 import javafx.stage.Stage;
 import javax.enterprise.event.Observes;
 import javax.inject.Inject;
-import org.flyboy.bells.ui.javafx.conf.StartupScene;
+import org.flyboy.belltower.panel.conf.StartupScene;
 
 public class App {
 

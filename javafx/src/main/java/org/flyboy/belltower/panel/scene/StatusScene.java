@@ -1,4 +1,4 @@
-package org.flyboy.bells.ui.javafx.scene;
+package org.flyboy.belltower.panel.scene;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -11,7 +11,7 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import org.flyboy.bells.ui.javafx.tower.BelltowerSceneModel;
+import org.flyboy.belltower.panel.tower.BelltowerSceneModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

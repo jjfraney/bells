@@ -1,4 +1,4 @@
-package org.flyboy.bells.ui.javafx.tower;
+package org.flyboy.belltower.panel.tower;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;

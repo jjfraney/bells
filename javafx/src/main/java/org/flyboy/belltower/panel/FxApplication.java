@@ -1,8 +1,8 @@
-package org.flyboy.bells.ui.javafx;
+package org.flyboy.belltower.panel;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
-import org.flyboy.bells.ui.javafx.conf.StartupScene;
+import org.flyboy.belltower.panel.conf.StartupScene;
 
 import javax.enterprise.inject.spi.CDI;
 import javax.enterprise.util.AnnotationLiteral;

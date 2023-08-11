@@ -1,4 +1,4 @@
-package org.flyboy.bells.ui.javafx.tower;
+package org.flyboy.belltower.panel.tower;
 
 /**
  * @author John J. Franey

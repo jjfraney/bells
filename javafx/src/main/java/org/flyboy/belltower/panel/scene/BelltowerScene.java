@@ -1,4 +1,4 @@
-package org.flyboy.bells.ui.javafx.scene;
+package org.flyboy.belltower.panel.scene;
 
 import java.net.URL;
 import java.util.ResourceBundle;
@@ -12,8 +12,8 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import org.flyboy.bells.ui.javafx.tower.BelltowerSceneModel;
-import org.flyboy.bells.ui.javafx.tower.BelltowerSongs;
+import org.flyboy.belltower.panel.tower.BelltowerSceneModel;
+import org.flyboy.belltower.panel.tower.BelltowerSongs;
 
 /**
  * Scene which controls and obtains status of the belltower.

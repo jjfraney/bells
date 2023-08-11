@@ -26,7 +26,7 @@ import java.net.ConnectException;
 
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@Path("/belltower")
+@Path("/bell")
 public class BellResource {
     private static final String VACANT = "__vacant__";
 

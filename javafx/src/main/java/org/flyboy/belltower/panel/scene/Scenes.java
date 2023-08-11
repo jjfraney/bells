@@ -1,4 +1,4 @@
-package org.flyboy.bells.ui.javafx.scene;
+package org.flyboy.belltower.panel.scene;
 
 import java.io.IOException;
 import java.net.URL;

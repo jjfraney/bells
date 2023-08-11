@@ -1,4 +1,4 @@
-package org.flyboy.bells.ui.javafx.tower;
+package org.flyboy.belltower.panel.tower;
 
 import io.smallrye.mutiny.Uni;
 import javax.ws.rs.GET;
