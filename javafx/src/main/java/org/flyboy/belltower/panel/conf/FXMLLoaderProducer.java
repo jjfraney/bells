@@ -1,9 +1,9 @@
 package org.flyboy.belltower.panel.conf;
 
 import javafx.fxml.FXMLLoader;
-import javax.enterprise.inject.Instance;
-import javax.enterprise.inject.Produces;
-import javax.inject.Inject;
+import jakarta.enterprise.inject.Instance;
+import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Inject;
 
 public class FXMLLoaderProducer {
 

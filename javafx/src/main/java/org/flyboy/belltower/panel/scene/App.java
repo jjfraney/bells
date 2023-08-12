@@ -1,8 +1,8 @@
 package org.flyboy.belltower.panel.scene;
 
 import javafx.stage.Stage;
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
 import org.flyboy.belltower.panel.conf.StartupScene;
 
 public class App {

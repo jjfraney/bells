@@ -1,6 +1,6 @@
 package org.flyboy.belltower.panel.tower;
 
-import javax.enterprise.context.Dependent;
+import jakarta.enterprise.context.Dependent;
 import java.util.List;
 
 /**

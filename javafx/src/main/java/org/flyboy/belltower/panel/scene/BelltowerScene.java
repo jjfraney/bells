@@ -10,8 +10,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.flyboy.belltower.panel.tower.BelltowerSceneModel;
 import org.flyboy.belltower.panel.tower.BelltowerSongs;
 
