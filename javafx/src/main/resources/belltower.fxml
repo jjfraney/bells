@@ -2,12 +2,23 @@
 
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="251.0" prefWidth="496.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.flyboy.belltower.panel.scene.BelltowerScene">
-    <Button fx:id="btnRing" layoutX="308.0" layoutY="73.0" mnemonicParsing="false" onAction="#ringBell" text="Ring" />
-   <Button fx:id="btnStatus" layoutX="141.0" layoutY="213.0" mnemonicParsing="false" onAction="#getStatus" text="Status" />
-   <Text fx:id="txtState" layoutX="185.0" layoutY="213.0" />
-   <ListView fx:id="listView" layoutX="77.0" layoutY="11.0" prefHeight="148.0" prefWidth="200.0" />
-   <Button fx:id="btnBack" layoutX="8.0" layoutY="213.0" mnemonicParsing="false" text="Back" onAction="#switchStatusScene" />
+<AnchorPane id="AnchorPane" prefHeight="251.0" prefWidth="496.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.flyboy.belltower.panel.scene.belltower.View">
+   <TextArea fx:id="eventText" layoutX="28.0" layoutY="82.0" prefHeight="106.0" prefWidth="431.0" />
+   <VBox layoutX="28.0" layoutY="14.0" prefHeight="200.0" prefWidth="185.0">
+      <children>
+         <HBox prefHeight="39.0" prefWidth="120.0">
+            <children>
+               <Label prefWidth="120.0" text="calendar Service: " />
+               <Label fx:id="calendarServiceHealth" text="UNKNOWN" />
+            </children></HBox>
+         <HBox prefHeight="39.0" prefWidth="185.0">
+            <children>
+               <Label prefWidth="120.0" text="time Service: " />
+               <Label fx:id="timeServiceHealth" text="UNKNOWN" />
+            </children>
+         </HBox>
+      </children>
+   </VBox>
+
 </AnchorPane>

@@ -1,4 +1,4 @@
-package org.flyboy.belltower.panel.tower;
+package org.flyboy.belltower.panel.scene.belltower.model;
 
 import io.smallrye.mutiny.Uni;
 import jakarta.ws.rs.GET;
@@ -9,14 +9,14 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 /**
  * Per RestEasy/Quarkus extension, this interface
- * describes the methods available on the belltower endpoint.
+ * describes the methods available on the belltowerClient endpoint.
  *
  * @author John J. Franey
  */
 @SuppressWarnings("QsUndeclaredPathMimeTypesInspection")
 @Path("/belltower")
 @RegisterRestClient
-public interface Belltower {
+public interface BelltowerClient {
 
     @GET
     Uni<BelltowerStatus> getStatus();

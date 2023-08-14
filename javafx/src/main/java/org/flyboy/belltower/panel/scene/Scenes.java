@@ -17,31 +17,12 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class Scenes {
 
-  @Inject
-  FXMLLoader fxmlLoader;
-
   private Scene belltower;
   public Scene getBelltower() {
     if(belltower == null) {
       belltower = loadScene("/belltower.fxml");
     }
     return belltower;
-  }
-
-  private Scene calendar;
-  public Scene getCalendar() {
-    if(calendar == null) {
-      calendar = loadScene("/calendar.fxml");
-    }
-    return calendar;
-  }
-
-  private Scene status;
-  public Scene getStatus() {
-    if(status == null) {
-      status = loadScene("/status.fxml");
-    }
-    return status;
   }
 
   private Scene loadScene(String path) {
@@ -54,7 +35,7 @@ public class Scenes {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    return new Scene(fxmlParent, 400, 200);
+    return new Scene(fxmlParent, 800, 400);
   }
 
   @Inject

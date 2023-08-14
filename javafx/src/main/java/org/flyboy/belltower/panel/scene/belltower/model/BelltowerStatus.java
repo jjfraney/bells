@@ -1,4 +1,4 @@
-package org.flyboy.belltower.panel.tower;
+package org.flyboy.belltower.panel.scene.belltower.model;
 
 /**
  * @author John J. Franey

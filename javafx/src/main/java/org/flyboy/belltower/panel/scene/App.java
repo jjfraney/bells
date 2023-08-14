@@ -12,8 +12,8 @@ public class App {
 
 	public void start(@Observes @StartupScene Stage stage) {
 
-		stage.setScene(scenes.getStatus());
-		stage.setTitle("Belltower Panel");
+		stage.setScene(scenes.getBelltower());
+		stage.setTitle("BelltowerClient Panel");
 		stage.show();
 	}
 
