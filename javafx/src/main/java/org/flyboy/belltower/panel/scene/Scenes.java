@@ -43,6 +43,10 @@ public class Scenes {
 
   public FXMLLoader createLoader() {
     FXMLLoader loader = new FXMLLoader();
+
+    // note:
+    //   View beans must be @Singleton and their
+    //      data members UI controls have public accessor.
     loader.setControllerFactory(param -> instance.select(param).get());
     loader.setClassLoader(Thread.currentThread().getContextClassLoader());
     return loader;

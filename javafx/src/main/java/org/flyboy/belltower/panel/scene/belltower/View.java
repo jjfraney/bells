@@ -6,6 +6,7 @@ import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
+import javafx.application.Platform;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -25,27 +26,27 @@ public class View implements Initializable {
     public TextArea eventText;
 
     @Inject
-    ViewModel model;
+    ViewModel viewModel;
 
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
 
-        model.getBelltowerHealth().addListener((observableValue, oldHealth, newHealth) -> {
+        viewModel.getBelltowerHealth()
+            .addListener((observableValue, oldHealth, newHealth) -> Platform.runLater(() -> {
             calendarServiceHealth.setText(newHealth.calendarService().toString());
             timeServiceHealth.setText(newHealth.timeService().toString());
-        });
+            }));
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
         Consumer<Event> loadEvent = event -> eventText.appendText(event.timestamp().format(formatter) + ": " + event.message() + "\n");
 
-        model.getBelltowerEvents().forEach(loadEvent);
+        viewModel.getBelltowerEvents().forEach(loadEvent);
 
-        model.getBelltowerEvents().addListener((observableList, oldValue, newValue) -> {
+        viewModel.getBelltowerEvents()
+            .addListener((observableList, oldValue, newValue) -> Platform.runLater(() -> {
             eventText.clear();
             newValue.forEach(loadEvent);
-        });
-
-
+            }));
     }
 }

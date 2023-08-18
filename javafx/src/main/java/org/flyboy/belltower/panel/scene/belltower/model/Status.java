@@ -3,7 +3,7 @@ package org.flyboy.belltower.panel.scene.belltower.model;
 /**
  * @author John J. Franey
  */
-public class BelltowerStatus {
+public class Status {
     private String status;
     private String locked;
 

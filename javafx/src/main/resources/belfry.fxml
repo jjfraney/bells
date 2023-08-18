@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="251.0" prefWidth="496.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.flyboy.belltower.panel.scene.belfry.View">
+   <VBox layoutX="27.0" layoutY="58.0" prefHeight="80.0" prefWidth="350.0">
+      <HBox prefHeight="39.0" prefWidth="120.0">
+         <Label prefWidth="120.0" text="Bell: " />
+         <Label fx:id="bellStatus" prefHeight="16.0" prefWidth="81.0" text="UNKNOWN" />
+      </HBox>
+      <HBox prefHeight="39.0" prefWidth="185.0">
+         <Label prefWidth="120.0" text="Bell pattern: " />
+         <Label fx:id="bellPattern" />
+      </HBox>
+   </VBox>
+</AnchorPane>

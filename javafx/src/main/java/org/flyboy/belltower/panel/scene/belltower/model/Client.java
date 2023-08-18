@@ -16,12 +16,12 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 @SuppressWarnings("QsUndeclaredPathMimeTypesInspection")
 @Path("/belltower")
 @RegisterRestClient
-public interface BelltowerClient {
+public interface Client {
 
     @GET
-    Uni<BelltowerStatus> getStatus();
+    Uni<Status> getStatus();
 
     @PUT
     @Path("/ring")
-    Uni<BelltowerStatus> ring(@QueryParam("pattern") String pattern);
+    Uni<Status> ring(@QueryParam("pattern") String pattern);
 }
