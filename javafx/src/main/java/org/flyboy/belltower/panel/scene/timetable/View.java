@@ -9,8 +9,11 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.TextArea;
+import org.flyboy.belltower.panel.scene.navigation.Controller;
 import org.flyboy.belltower.panel.scene.timetable.model.Entry;
 
 /**
@@ -19,14 +22,20 @@ import org.flyboy.belltower.panel.scene.timetable.model.Entry;
 @Singleton
 public class View implements Initializable {
 
-  public TextArea eventText;
+  @FXML
+  TextArea eventText;
+
+  @FXML
+  MenuBar navigation;
+
+  @FXML
+  Controller navigationController;
 
   @Inject
   ViewModel viewModel;
 
   @Override
   public void initialize(URL url, ResourceBundle resourceBundle) {
-
     viewModel.getScheduled().addListener(new ScheduleChangeListener());
   }
 

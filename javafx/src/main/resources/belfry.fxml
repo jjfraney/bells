@@ -3,7 +3,9 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane id="AnchorPane" prefHeight="251.0" prefWidth="496.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.flyboy.belltower.panel.scene.belfry.View">
+<VBox xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.flyboy.belltower.panel.scene.belfry.View">
+
+   <fx:include fx:id="navigation" source="/navigation.fxml"/>
    <VBox layoutX="27.0" layoutY="58.0" prefHeight="80.0" prefWidth="350.0">
       <HBox prefHeight="39.0" prefWidth="120.0">
          <Label prefWidth="120.0" text="Bell: " />
@@ -14,4 +16,4 @@
          <Label fx:id="bellPattern" />
       </HBox>
    </VBox>
-</AnchorPane>
+</VBox>

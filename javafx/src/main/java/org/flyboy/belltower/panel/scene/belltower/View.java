@@ -7,10 +7,13 @@ import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import javafx.application.Platform;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.TextArea;
 import org.flyboy.belltower.panel.scene.belltower.model.Event;
+import org.flyboy.belltower.panel.scene.navigation.Controller;
 
 /**
  * UI Controls of the belltower scene.
@@ -19,11 +22,20 @@ import org.flyboy.belltower.panel.scene.belltower.model.Event;
 public class View implements Initializable {
 
 
-    public Label calendarServiceHealth;
+    @FXML
+    Label calendarServiceHealth;
 
-    public Label timeServiceHealth;
+    @FXML
+    Label timeServiceHealth;
 
-    public TextArea eventText;
+    @FXML
+    TextArea eventText;
+
+    @FXML
+    MenuBar navigation;
+
+    @FXML
+    Controller navigationController;
 
     @Inject
     ViewModel viewModel;

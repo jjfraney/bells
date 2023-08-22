@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+
+<MenuBar xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/17.0.2-ea" fx:controller="org.flyboy.belltower.panel.scene.navigation.Controller">
+  <Menu mnemonicParsing="false" text="scenes">
+    <MenuItem mnemonicParsing="false" fx:id="belltowerItem" text="belltower"/>
+    <MenuItem mnemonicParsing="false" fx:id="belfryItem" text="belfry"/>
+    <MenuItem mnemonicParsing="false" fx:id="timetableItem" text = "timetable" />
+  </Menu>
+</MenuBar>

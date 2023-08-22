@@ -1,28 +1,38 @@
-package org.flyboy.belltower.panel.scene;
+package org.flyboy.belltower.panel.scene.navigation;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Objects;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
 
 /**
  * @author John J. Franey
  */
 
 @ApplicationScoped
-public class Scenes {
+public class SceneFactory {
 
-  private Scene belltower;
+  @Belltower
+  @ApplicationScoped
   public Scene getBelltower() {
-    if(belltower == null) {
-      belltower = loadScene("/belltower.fxml");
-    }
-    return belltower;
+      return loadScene("/belltower.fxml");
+  }
+
+  @Belfry
+  @ApplicationScoped
+  public Scene getBelfry() {
+    return loadScene("/belfry.fxml");
+  }
+
+  @Timetable
+  @ApplicationScoped
+  public Scene getTimetable() {
+    return loadScene("/timetable.fxml");
   }
 
   private Scene loadScene(String path) {

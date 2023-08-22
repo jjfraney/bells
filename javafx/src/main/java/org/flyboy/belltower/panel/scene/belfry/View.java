@@ -7,8 +7,11 @@ import jakarta.inject.Singleton;
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.beans.value.ChangeListener;
+import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuBar;
+import org.flyboy.belltower.panel.scene.navigation.Controller;
 
 /**
  * UI controls of the belfry scene.
@@ -18,9 +21,16 @@ import javafx.scene.control.Label;
 @Singleton
 public class View implements Initializable {
 
-  public Label bellStatus;
+  @FXML
+  Label bellStatus;
 
-  public Label bellPattern;
+  @FXML Label bellPattern;
+
+  @FXML
+  MenuBar navigation;
+
+  @FXML
+  Controller navigationController;
 
   @Inject
   ViewModel viewModel;
