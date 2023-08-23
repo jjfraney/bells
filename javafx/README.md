@@ -4,84 +4,67 @@
 
 Controls for
 - ringing bells
-- accessing bells schedule
-- get status of bell tower
+- accessing bells timetable
+- get status of the bell pattern player
 
-# Scenes and Scene Model
+To use the same code base for web and embedded display,
+javafx is the UI programming technology.
 
-A javafx Scene describes controls of a 'view'.
-A SceneModel would contain the data of the 'view' as javafx Properties
-A SceneModel would also contain methods to call the backend belltower service.
-
-## Status Scene
-The application would open with a read only status scene.
-This contains:
-- a read out of the upcoming bell schedule
-- a command control to refresh the schedule *
-- realtime status of the belltower 
-- a list of bell patterns available with a control
-- to select and ring any pattern *
-- a link to another scene to control the Calendar.
-
-
-The Status Scene includes a link to
-the calendar and control scenes.
-
-* If user is not authenticated, then this scene will pop up the login scene
-for authentication.
-
-## Calendar Scene
-
-The Calendar Scene has functions to read and modify the bell calendar.
-
-The controls are focused on scheduling bells for a given date-time.
-Repeatable and one-time-only ringing are supported.
-
-If use is not authenticated, then this scene will pop up the login scene
-for authentication.
+For low memory footprint and dependency injection,
+Quarkus is the overall development platform.
 
 ## Belltower Scene
+The application would open with a read only status scene.
+This contains:
+- general events describing overall status change over time
+- display describing overall instantaneous status
+  - status of time service
+  - status of remote service that provides timetable
 
-For more details of control of the bell tower.
-Also controls to ring a pattern and read the different patterns available
+## Timetable Scene
 
-If use is not authenticated, then this scene will pop up the login scene
-for authentication.
+The Timetable Scene has functions to read the bell timetable.
+The timetable gives the time and bell pattern to play.
+
+## Belfry Scene
+
+The Belfry scene gives details of the bell status,
+whether it is idle or playing a pattern,
+and what pattern it is playing.
 
 ## Login Scene
 
 Collects credentials and drives a backend call to authentication and authorization.
 
+# Security requirements
+
+Unauthenticated users can:
+- read timetable
+- read overall system status
+- read bell status
+
+Authenticated users can:
+- ring bell patterns on command
+- restart the application
+- reboot the operating system
+
+# Program Design notes
+
+The view-model-viewmodel pattern is maintained.
+
+* The view is the set of UI controls on a javafx scene which is comprised of:
+  * an fxml file,
+  * and a java class (View)
+* The viewmodel are the observers and callbacks between the view and the model.
+It decouples the UI control from the model.
+* The model is the logic which can obtain and present data to the view
+and perform tasks.  This layer must remain isolated from the UI controls
+via the viewmodel.
+
+Decoupling is further supported by CDI injection.
+
+The CDI bean manager is registered to javafx to
+instantiate the View controllers at fxml load time.
 
 
-# Getting started with Quarkus JavaFx
-
-This is a minimal javafx application that access Quarkus API's.
-
-Under the hood, this demo uses:
-
-- `@QuarkusMain` to enable a custom main class
-
-## Requirements
-
-To compile and run this demo you will need:
-
-- JDK 11+
-- Maven 3.6.3+
-
-### Configuring JDK 11
-
-Make sure that `JAVA_HOME` environment variables have
-been set, and that a JDK 11+ `java` command is on the path.
-
-## Building the application
-
-Launch the Maven build on the checked out sources of this demo:
-
-> mvn package
-
-
-Then run it:
-
-> java -jar target/quarkus-javafx-example-1.0-runner.jar
 
