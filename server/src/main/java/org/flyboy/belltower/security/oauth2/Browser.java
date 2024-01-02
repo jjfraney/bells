@@ -1,6 +1,5 @@
 package org.flyboy.belltower.security.oauth2;
 
-import io.smallrye.common.annotation.Blocking;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,7 +17,6 @@ import java.util.Optional;
 public class Browser {
     private static final Logger logger = LoggerFactory.getLogger(Browser.class);
 
-    @Blocking
     public void browse(URI uri) {
         Objects.requireNonNull(uri);
         getDesktop().ifPresent(desktop -> browse(desktop, uri));

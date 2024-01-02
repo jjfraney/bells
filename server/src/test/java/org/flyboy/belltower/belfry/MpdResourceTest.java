@@ -1,7 +1,7 @@
 package org.flyboy.belltower.belfry;
 
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.InjectMock;
 import io.smallrye.mutiny.Uni;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;

@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.File;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 
 /**
@@ -20,7 +20,7 @@ public class TokenStoreTest {
     File tempDir;
 
 
-    private final ZonedDateTime now = ZonedDateTime.now().withZoneSameInstant(ZoneId.of("UTC"));
+    private final ZonedDateTime now = ZonedDateTime.now().withZoneSameInstant(ZoneOffset.UTC);
 
     private TokenStore tokenStore;
 
