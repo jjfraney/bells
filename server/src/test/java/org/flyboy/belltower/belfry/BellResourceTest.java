@@ -1,7 +1,7 @@
 package org.flyboy.belltower.belfry;
 
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
+import io.quarkus.test.InjectMock;
 import io.smallrye.mutiny.Uni;
 import io.smallrye.mutiny.unchecked.Unchecked;
 import org.hamcrest.Matchers;
@@ -34,7 +34,7 @@ class BellResourceTest {
 
         Mockito.when(bell.getStatus()).thenReturn(uni);
         given()
-                .when().get("/belltower")
+                .when().get("/bell")
                 .then().statusCode(500).body(Matchers.containsString("Connection refused: localhost/127.0.0.1:6600"));
     }
 
@@ -45,7 +45,7 @@ class BellResourceTest {
         Mockito.when(bell.getStatus()).thenReturn(uni);
 
         given()
-                .when().get("/belltower")
+                .when().get("/bell")
                 .then().statusCode(200).body(is("{\"locked\":false,\"status\":\"stop\"}"));
     }
 
@@ -55,7 +55,7 @@ class BellResourceTest {
         Uni<BellStatus> uni = Uni.createFrom().item(new BellStatus(true, "stop"));
         Mockito.when(bell.lock()).thenReturn(uni);
         given()
-                .when().put("/belltower/lock")
+                .when().put("/bell/lock")
                 .then().statusCode(200).body(is("{\"locked\":true,\"status\":\"stop\"}"));
     }
 
@@ -65,7 +65,7 @@ class BellResourceTest {
         Mockito.when(bell.unlock()).thenReturn(uni);
 
         given()
-                .when().delete("/belltower/lock")
+                .when().delete("/bell/lock")
                 .then().statusCode(200).body(is("{\"locked\":false,\"status\":\"stop\"}"));
     }
 
@@ -81,7 +81,7 @@ class BellResourceTest {
         Mockito.when(bell.ring(anyString())).thenReturn(uni);
 
         given()
-                .when().put("/belltower/ring?pattern=call-to-mass")
+                .when().put("/bell/ring?pattern=call-to-mass")
                 .then().statusCode(409).body(containsString("Bell is locked."));
     }
 
@@ -96,7 +96,7 @@ class BellResourceTest {
 
         Mockito.when(bell.ring(anyString())).thenReturn(uni);
         given()
-                .when().put("/belltower/ring?pattern=call-to-mass")
+                .when().put("/bell/ring?pattern=call-to-mass")
                 .then().statusCode(409).body(containsString("Bell is busy."));
 
     }
@@ -108,7 +108,7 @@ class BellResourceTest {
         Mockito.when(bell.ring(sampleName)).thenReturn(uni);
 
         given()
-                .when().put("/belltower/ring?pattern=" + sampleName)
+                .when().put("/bell/ring?pattern=" + sampleName)
                 .then().statusCode(200).body(is("{\"locked\":false,\"status\":\"play\"}"));
     }
 
@@ -125,7 +125,7 @@ class BellResourceTest {
         Mockito.when(bell.ring(sampleName)).thenReturn(uni);
 
         given()
-                .when().put("/belltower/ring?pattern=" + sampleName)
+                .when().put("/bell/ring?pattern=" + sampleName)
                 .then().statusCode(500).body(containsString("Failed to play sample, error=33, text=some mock error"));
     }
 
@@ -135,7 +135,7 @@ class BellResourceTest {
         Mockito.when(bell.stop()).thenReturn(uni);
 
         given()
-                .when().delete("/belltower/ring")
+                .when().delete("/bell/ring")
                 .then().statusCode(200).body(is("{\"locked\":false,\"status\":\"stop\"}"));
     }
 
@@ -151,7 +151,7 @@ class BellResourceTest {
         Mockito.when(bell.ring(sampleName)).thenReturn(uni);
 
         given()
-                .when().put("/belltower/ring?pattern=" + sampleName)
+                .when().put("/bell/ring?pattern=" + sampleName)
                 .then().statusCode(404).body(containsString("\\\"call-to-mass\\\" not found."));
 
     }
