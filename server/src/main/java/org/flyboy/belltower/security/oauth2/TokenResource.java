@@ -25,8 +25,9 @@ public class TokenResource {
     TokenService tokenService;
 
     @GET
-    public Uni<String> getToken() {
-        return  tokenService.getToken();
+    public Uni<Void> getToken() {
+        return  tokenService.getToken()
+                .onItem().transformToUni(token -> Uni.createFrom().nullItem());
     }
 
     @SuppressWarnings("unused")

@@ -361,16 +361,18 @@ Design decision pending: Sharing memory or send message from
 callback endpoint to Token Service.
 
 The next step in this OAuth2 flow is to obtain an authorization code.
-The Token Service uses java.awt.Desktop to browse to the authorization service.
-The browser 'visits' the authorization url.
+The Token Service writes the authorization url to the log.
+The configuration technician 'visits' the authorization service within
+an amount of time which is configurable by 
+*belltower.security.oauth2.CodeCallbackEndpoint.waitTime*.
 
-The authorization service will obtain authorization from the resource owner.
-The resource owner had earlier granted authorization to this client id/secret.
+The authorization service will obtain authorization from the calendar resource owner.
+The calendar resource owner would grant authorization to this client to access calendar.
 
 The authorization service would return an authorization code in a redirect response (3xx).
 The response includes an url with authorization code as a query parameter.
 The url is in the Location header of the response.
-The url redirects to the callback endpoint.
+The url redirects to the callback endpoint within the Token Service.
 The browser visits the callback endpoint.
 
 The callback endpoint exchanges
@@ -379,23 +381,21 @@ It sends the code to the remote token server
 which returns the access token and refresh token.
 
 The callback endpoint then provides the access token to the Token Service.
-The Token service stores the token,
-and returns the token back to Belltower
-which can then send it to the remote calendar api for authorized access.
+The Token service stores the token on the filesystem for ongoing access to the calendar.
 
 The Token Service may detect that the token had expired.
 It must request a refreshed access token.
 It will send a request to the remote token server to refresh the token.
+User interaction is not required to refresh the token.
 
 ```mermaid
 sequenceDiagram
-  Belltower ->>+ Token Service: get access token
+  Front End ->>+ Token Service: get access token
   Token Service ->> Token Service: read stored token
   alt no stored token
   Token Service ->>- callback endpoint: start http server
   callback endpoint ->>+ Token Service: callback uri
-  Token Service ->>+Desktop browser: browse(auth-url)
-  Desktop browser ->>- Token Service: void
+  Note right of Desktop browser: auth-url will appear in log
   Desktop browser ->>+ Remote Authorization server: visit auth-url
   Remote Authorization server ->>- Desktop browser: callback uri and code
   Desktop browser ->>+ callback endpoint: redirect to callback uri
@@ -404,10 +404,10 @@ sequenceDiagram
   callback endpoint --> Token Service: share access token
   else has stored token
   Token Service ->>+ Remote Token server: refresh token
-  Remote Token server ->>- Token Service: access token
+  Remote Token server ->>- Token Service: 
   end
   Token Service ->> Token Service: save stored token
-  Token Service ->>- Belltower: access token
+  Token Service ->>- Front End: 
 ```
 
 ## Running the application in dev mode

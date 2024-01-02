@@ -138,7 +138,10 @@ public class CodeCallbackEndpoint {
 
         return emitter
                 .ifNoItem().after(waitTime).failWith(new AuthCodeTimeoutException(waitTime))
-                .eventually(() -> httpServer.close())
+                .eventually(() -> {
+                    logger.info("Shutting down code callback endpoint.");
+                    return httpServer.close();
+                })
                 ;
 
 

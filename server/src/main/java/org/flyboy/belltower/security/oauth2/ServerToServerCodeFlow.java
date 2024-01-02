@@ -28,9 +28,6 @@ public class ServerToServerCodeFlow {
     @RestClient
     AuthorizationServer authToken;
 
-    @Inject
-    Browser browser;
-
     @ConfigProperty(name="calendar-scopes")
     String calendarScopes;
 
@@ -126,7 +123,8 @@ public class ServerToServerCodeFlow {
                 .collect(Collectors.joining("&"));
 
         URI uri = URI.create(authServiceUrl + "?" + queryParams);
-        browser.browse(uri);
+
+        logger.info("auth uri: {}", uri);
 
     }
 }

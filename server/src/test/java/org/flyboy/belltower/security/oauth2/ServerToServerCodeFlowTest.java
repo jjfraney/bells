@@ -29,7 +29,6 @@ public class ServerToServerCodeFlowTest {
 
         serverToServerCodeFlow.callbackEndpoint = Mockito.mock(CodeCallbackEndpoint.class);
         serverToServerCodeFlow.authToken = Mockito.mock(AuthorizationServer.class);
-        serverToServerCodeFlow.browser = Mockito.mock(Browser.class);
     }
 
     @Test
