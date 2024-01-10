@@ -36,6 +36,78 @@ and what pattern it is playing.
 
 Collects credentials and drives a backend call to authentication and authorization.
 
+# Workflows
+
+## Scheduling
+
+* view the time and pattern of the next scheduled peal.
+  * UI: belltower (main) status panel, timetable panel
+  * API: get schedule
+* view the list of upcoming scheduled peals.
+  * UI: timetable panel
+  * API: get schedule
+* get list of bell patterns (call to mass, wedding, funeral)
+  * UI: belfry, timetable (at edit time)
+  * API: pattern list
+* add/delete/change permanent schedule
+  * UI: probably a different timetable panel (too much controls to fit)
+  * API: maybe direct to google calendar?
+
+## Immediate care
+* add a one-time pattern to the schedule
+  * UI: timetable panel (edit)
+  * API: set schedule
+* stop the current play immediately
+  * graceful, as if real bells
+  * hard, like no real bell can stop
+  * UI: belfry panel, belltower panel
+  * API: stop (hard and graceful)
+* one-time play a bell pattern:
+  * immediately
+  * in-case schedule is incorrect and there is a miss in the schedule...play call-to-mass at next
+  * UI: belfry panel
+  * API: play pattern
+half-hour (minus 60 s).  Emergency call to mass.
+  * after some arbitrary delay
+  * at some scheduled time
+  * UI: belfry, timetable panels
+  * API: playAt
+
+
+## Administration
+
+* health readout (most if not all on belltower/main panel)
+  * to confirm tower will play next scheduled pattern at the right time
+    * UI: belltower panel
+  * to show tower has upto date schedule
+    * UI: belltower panel
+  * to show tower has the correct time
+    * UI: belltower panel
+  * tower can report the last missed scheduled bell play
+    * comparing schedule to actual
+  * show tower can connect to network
+  * show tower is connected with media player (mpd)
+  * time of last restart
+  * time of last network outage and duration
+  * show logs
+    * result of getting schedule
+    * restart/reboot
+    * requests to ad hoc ring
+* soft restart (reset short of a reboot)
+* hard restart (reboot)
+* get authorization to access google calendar
+* default schedule (built-in to run while network is unavailable)
+* remembers the last schedule download in case there is:
+  * network outage
+  * power outage and restoration
+* login/authorization
+  * times out.
+  * authorization levels
+    * monitor - read only
+    * ringer - immediate rings, schedule edits
+    * system - user management, reboots
+
+
 # Security requirements
 
 Unauthenticated users can:
