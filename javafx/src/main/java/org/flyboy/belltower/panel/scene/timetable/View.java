@@ -3,7 +3,6 @@ package org.flyboy.belltower.panel.scene.timetable;
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 import java.net.URL;
-import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
@@ -14,7 +13,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.TextArea;
 import org.flyboy.belltower.panel.scene.navigation.Controller;
-import org.flyboy.belltower.panel.scene.timetable.model.Entry;
+import org.flyboy.belltower.panel.scene.timetable.model.Slot;
 
 /**
  * @author John J. Franey
@@ -23,7 +22,7 @@ import org.flyboy.belltower.panel.scene.timetable.model.Entry;
 public class View implements Initializable {
 
   @FXML
-  TextArea eventText;
+  TextArea slotText;
 
   @FXML
   MenuBar navigation;
@@ -36,37 +35,46 @@ public class View implements Initializable {
 
   @Override
   public void initialize(URL url, ResourceBundle resourceBundle) {
-    viewModel.getScheduled().addListener(new ScheduleChangeListener());
+    viewModel.getScheduled().addListener(new ScheduleChangeListener(this));
   }
 
+  /**
+   * Class that responds to new change of the
+   * @author John J. Franey
+   */
+  static class ScheduleChangeListener implements ChangeListener<ObservableList<Slot>> {
 
-  private class ScheduleChangeListener implements ChangeListener<ObservableList<Entry>> {
+    private final View view;
+    private final SlotFormatter slotFormatter = new SlotFormatter();
 
-    final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy HH:mm:ss");
+    public ScheduleChangeListener(View view) {
+      this.view = view;
+    }
 
     /**
-     * @param observableValue of the ring event list
-     * @param former content of the list.
-     * @param latest content of the list
+     * @param observableValue of the playlist
+     * @param former          content of the playlist.
+     * @param latest          content of the playlist
      */
     @Override
-    public void changed(ObservableValue<? extends ObservableList<Entry>> observableValue,
-        ObservableList<Entry> former, ObservableList<Entry> latest) {
+    public void changed(ObservableValue<? extends ObservableList<Slot>> observableValue,
+        ObservableList<Slot> former, ObservableList<Slot> latest) {
 
       Platform.runLater(() -> updateFrom(latest));
     }
 
     /**
      * updates the UI control from the observed list.
+     *
      * @param observableList of events
      */
-    private void updateFrom(ObservableList<Entry> observableList) {
-      eventText.clear();
+    private void updateFrom(ObservableList<Slot> observableList) {
+      view.slotText.clear();
       observableList.forEach(event -> {
-        String text = event.dateTime().format(formatter) + ": " + event.eventDescription() + "\n";
-        eventText.appendText(text);
+        view.slotText.appendText(slotFormatter.toView(event));
       });
     }
   }
-
 }
+
+

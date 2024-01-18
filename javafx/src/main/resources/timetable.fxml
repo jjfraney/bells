@@ -6,7 +6,7 @@
 <VBox xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.flyboy.belltower.panel.scene.timetable.View">
    <fx:include fx:id="navigation" source="/navigation.fxml"/>
    <VBox layoutX="28.0" layoutY="14.0" prefHeight="200.0" prefWidth="185.0">
-      <TextArea fx:id="eventText" layoutX="28.0" layoutY="82.0" prefHeight="106.0" prefWidth="431.0" />
+      <TextArea fx:id="slotText" layoutX="28.0" layoutY="82.0" prefHeight="106.0" prefWidth="431.0" />
    </VBox>
 
 </VBox>

@@ -41,7 +41,8 @@ public class SceneFactory {
 
     Parent fxmlParent;
     try {
-      fxmlParent = createLoader().load(fxml.openStream());
+      var loader = createLoader(fxml);
+      fxmlParent = loader.load();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -51,8 +52,8 @@ public class SceneFactory {
   @Inject
   Instance<Object> instance;
 
-  public FXMLLoader createLoader() {
-    FXMLLoader loader = new FXMLLoader();
+  public FXMLLoader createLoader(URL url) {
+    FXMLLoader loader = new FXMLLoader(url);
 
     // note:
     //   View beans must be @Singleton and their

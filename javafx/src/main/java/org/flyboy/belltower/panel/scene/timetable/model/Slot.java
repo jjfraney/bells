@@ -4,10 +4,10 @@ import java.time.ZonedDateTime;
 
 /**
  * Timetable entry.
- * @param dateTime of the event
- * @param eventDescription of the event
+ * @param dateTime of the slot
+ * @param title of the slot
  * @author John J. Franey
  */
-public record Entry(ZonedDateTime dateTime, String eventDescription) {
+public record Slot(ZonedDateTime dateTime, String title) {
 
 }
